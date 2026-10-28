@@ -522,6 +522,60 @@
         border: 1.5px solid var(--accent); background: var(--accent);
         color: var(--on-accent); font-size: 14px; font-weight: 700;
       }
+      /* Once a cloud key is saved, the long reader notes and
+         the free-key link tuck away under this tab: outside it
+         only the short saved line shows. One press opens the
+         tab, one press closes it — it switches nothing and
+         re-reads nothing. */
+      .key-saved-line {
+        margin: 10px 0 0; font-size: 13.5px; font-weight: 700; color: var(--herb);
+      }
+      .reader-details-toggle {
+        width: 100%; min-height: 48px; margin-top: 8px; padding: 12px 14px;
+        border: 1.5px solid var(--line); border-radius: 12px;
+        background: var(--surface); color: var(--ink);
+        font-size: 14.5px; font-weight: 700;
+        display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      }
+      .reader-details-toggle .rd-chev {
+        flex: none; font-size: 19px; line-height: 1; color: var(--accent);
+        transition: transform .18s ease;
+      }
+      .reader-details-toggle[aria-expanded="true"] .rd-chev { transform: rotate(180deg); }
+      @media (prefers-reduced-motion: reduce) {
+        .reader-details-toggle .rd-chev { transition: none; }
+      }
+      /* Bottom-of-home Add key section: key entry and its
+         activated status only — no reader toggle, no reader
+         descriptions. It writes the one device-only key store,
+         so it is always in step with the top key box. */
+      .add-key-card {
+        margin-top: 26px; background: var(--surface); border: 1px solid var(--line);
+        border-radius: 18px; padding: 16px; box-shadow: var(--shadow-sm);
+      }
+      .add-key-title { font-weight: 700; font-size: 16px; margin: 0; }
+      .add-key-active { font-weight: 700; font-size: 16px; color: var(--herb); margin: 0; }
+      .add-key-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+      .add-key-row input {
+        flex: 1 1 210px; min-height: 44px; padding: 10px 12px;
+        border: 1.5px solid var(--line); border-radius: 12px;
+        background: var(--surface-2); color: var(--ink); font-size: 14px;
+      }
+      .add-key-row input:focus { border-color: var(--accent); outline: none; }
+      .add-key-remove-btn {
+        min-height: 44px; padding: 10px 16px; border-radius: 12px;
+        border: 1.5px solid var(--danger); background: var(--surface);
+        color: var(--danger); font-size: 14px; font-weight: 700;
+      }
+      .add-key-card a.freekey-block { display: flex; margin: 12px 0 0; }
+      .key-manage { margin-top: 10px; text-align: left; }
+      .key-manage-text { font-size: 12.5px; color: var(--muted); line-height: 1.45; margin: 0 0 8px; }
+      .key-remove-btn {
+        min-height: 44px; padding: 10px 16px; border-radius: 12px;
+        border: 1.5px solid var(--danger); background: var(--surface);
+        color: var(--danger); font-size: 14px; font-weight: 700;
+      }
 
       /* ---------- Update log ---------- */
       .update-log-list {
@@ -998,6 +1052,17 @@
           <p class="backup-note">Backing up saves one file — always named <strong>recipe-box-backup.json</strong> — with all your recipes and photos. You'll be asked where to save it: Files, Google Drive, iCloud Drive, or whichever storage app you use. If you're told a file with that name is already there, tap <strong>Replace</strong> — the new backup overwrites the old one, so you always keep just the one latest copy, never a pile of old ones.</p>
           <p class="backup-status" id="backup-status" role="status"></p>
         </div>
+
+        <div class="add-key-card" id="add-key-card">
+          <p class="add-key-title" id="add-key-title">Add key</p>
+          <p class="add-key-active" id="add-key-active" hidden>Key activated</p>
+          <div class="add-key-row">
+            <input type="text" id="add-key-input" placeholder="Your free OCR.space key" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Your free OCR.space key" />
+            <button type="button" class="ocr-key-save" id="add-key-save">Save key</button>
+            <button type="button" class="add-key-remove-btn" id="add-key-remove" hidden>Remove key</button>
+          </div>
+          <a class="freekey-link freekey-block" href="https://ocr.space/ocrapi/freekey" target="_blank" rel="noopener">Get a free cloud key</a>
+        </div>
       </section>
 
       <!-- ================= SCAN / EDIT ================= -->
@@ -1036,9 +1101,15 @@
                 <button type="button" class="reader-btn" data-ocr-mode="cloud" aria-pressed="true">Cloud first</button>
                 <button type="button" class="reader-btn" data-ocr-mode="device" aria-pressed="false">On-device only</button>
               </div>
+              <p class="key-saved-line" hidden>Cloud key saved</p>
+              <button type="button" class="reader-details-toggle" hidden aria-expanded="false">Reader &amp; key details <span class="rd-chev" aria-hidden="true">▾</span></button>
               <div class="reader-notes">
                 <p><strong>Cloud first</strong> — read online by OCR.space, often more accurate. Photos leave the phone and it needs internet. <a class="freekey-link" href="https://ocr.space/ocrapi/freekey" target="_blank" rel="noopener">Get a free cloud key</a> for your own quota — the cloud reader needs your own key, and without one photos are read on-device instead. If the cloud can't read a photo, the on-device reader steps in automatically.</p>
                 <p><strong>On-device only</strong> — the original reader, right on this phone. Private and works offline, but weaker on small print.</p>
+              </div>
+              <div class="key-manage" hidden>
+                <p class="key-manage-text">Your cloud key is saved on this device only — never in a backup or an export — and it is sent only to OCR.space when a cloud scan runs.</p>
+                <button type="button" class="key-remove-btn">Remove key</button>
               </div>
               <div class="key-needed" hidden>
                 <p class="key-needed-title">Key needed for the cloud reader</p>
@@ -1154,9 +1225,15 @@
             <button type="button" class="reader-btn" data-ocr-mode="cloud" aria-pressed="true">Cloud first</button>
             <button type="button" class="reader-btn" data-ocr-mode="device" aria-pressed="false">On-device only</button>
           </div>
+          <p class="key-saved-line" hidden>Cloud key saved</p>
+          <button type="button" class="reader-details-toggle" hidden aria-expanded="false">Reader &amp; key details <span class="rd-chev" aria-hidden="true">▾</span></button>
           <div class="reader-notes">
             <p><strong>Cloud first</strong> — read online by OCR.space, often more accurate. Photos leave the phone and it needs internet. <a class="freekey-link" href="https://ocr.space/ocrapi/freekey" target="_blank" rel="noopener">Get a free cloud key</a> for your own quota — the cloud reader needs your own key, and without one photos are read on-device instead. If the cloud can't read a photo, the on-device reader steps in automatically.</p>
             <p><strong>On-device only</strong> — the original reader, right on this phone. Private and works offline, but weaker on small print.</p>
+          </div>
+          <div class="key-manage" hidden>
+            <p class="key-manage-text">Your cloud key is saved on this device only — never in a backup or an export — and it is sent only to OCR.space when a cloud scan runs.</p>
+            <button type="button" class="key-remove-btn">Remove key</button>
           </div>
           <div class="key-needed" hidden>
             <p class="key-needed-title">Key needed for the cloud reader</p>
@@ -1249,7 +1326,7 @@
           <button type="button" class="theme-btn" data-theme-pref="dark" aria-pressed="false">Dark</button>
         </div>
       </div>
-      <p class="app-version"><button type="button" class="version-btn" id="app-version" aria-haspopup="dialog">v2.3 · What's new</button></p>
+      <p class="app-version"><button type="button" class="version-btn" id="app-version" aria-haspopup="dialog">v2.4 · What's new</button></p>
       <p class="terms-foot"><button class="text-btn" id="btn-terms-link" type="button">Terms and Conditions</button></p>
     </div>
 
@@ -1374,6 +1451,7 @@
       <div class="confirm-card">
         <h3 id="update-log-title">What's new</h3>
         <ul class="update-log-list">
+          <li><strong>v2.4</strong> Once a cloud key is saved, the long reader notes and free-key link tuck into a “Reader &amp; key details” tab up top — tap to open or close it. You can also add a key right at the bottom of the home screen. Cloud re-reads now update the words in place.</li>
           <li><strong>v2.3</strong> Removed the Photo reader toggle and its notes from the bottom of the page — the reader switch now lives only up top, under the photos.</li>
           <li><strong>v2.2</strong> Removed the duplicate key request at the bottom of the page — the key box, “Get a free cloud key” link and “Key needed” notice now live only up top, by the reader switch.</li>
           <li><strong>v2.1</strong> PaddleOCR is removed — only Cloud first (OCR.space) and On-device only remain. The cloud reader now needs your own free key: tap “Get a free cloud key” by the reader switch. With no key saved it says “Key needed” and reads on-device instead — no shared key is used quietly. Your key stays saved on this device only.</li>
@@ -1421,7 +1499,7 @@
         // it on every update: minor updates step 0.1 → 0.2 → 0.3 …,
         // a major update moves to the next whole number — 1.0,
         // 2.0, and so on.
-        var APP_VERSION = "2.3";
+        var APP_VERSION = "2.4";
         var recipes = [];
         var editingId = null;
         var viewingId = null;
@@ -2222,12 +2300,15 @@
         // of its photos again, in order — photo 1 first, then
         // 2, 3, up to 6 — put their words together in that
         // order, and update the recipe's words with the result.
-        // The name, category, time, notes and hand-typed
-        // instructions stay as they are; the ticks, line
-        // markings and amount marks belong to the old lines, so
-        // they are cleared and the amount marks worked out
-        // fresh from the new words. If no words can be read,
-        // the recipe's words stay exactly as they were.
+        // Only the scanned words change, in place: the name,
+        // category, time, notes and hand-typed instructions
+        // stay as they are, the photos stay, the ingredient
+        // ticks and line markings are kept, and Cook Week is
+        // never touched. Only the "check this amount" marks
+        // are worked out fresh from the new words, through the
+        // same fraction repair every scan uses. If no words
+        // can be read, the recipe's words stay exactly as
+        // they were.
         var detailRereading = false;
         function rereadRecipePhotos(r) {
           var photos = photosOf(r);
@@ -2258,8 +2339,11 @@
             }
             r.ingredients = parseRecipeText(combined).ingredients;
             r.updatedAt = Date.now();
-            if (checks[r.id]) { delete checks[r.id]; saveChecks(); }
-            if (lineMarks[r.id]) { delete lineMarks[r.id]; saveMarks(); }
+            // Ticks (checks) and line markings are kept on
+            // purpose — a re-read replaces only the words, it
+            // does not reset what the cook has already ticked
+            // off. The amount marks below are the one thing
+            // worked out fresh, from the new words.
             var fl = [];
             r.ingredients.forEach(function (l, i) {
               if (/\S/.test(l) && lineFractionNeedsCheck(l)) fl.push(i);
@@ -2268,7 +2352,7 @@
             saveAmountFlags();
             persist();
             if (viewingId === r.id) renderIngredients();
-            toast("All " + photos.length + (photos.length === 1 ? " photo" : " photos") + " re-read in order — the recipe's words are updated" + (keyNeededFallback ? ". Key needed for cloud, so they were read on-device instead" : fallbackHappened ? ". The chosen reader couldn't read every photo, so the back-up on-device reader filled in" : ""));
+            toast("All " + photos.length + (photos.length === 1 ? " photo" : " photos") + " re-read in order — the recipe's words are updated" + (keyNeededFallback ? ". Key needed for cloud, so they were read on-device instead" : fallbackHappened ? ". The chosen reader couldn't read every photo, so the back-up on-device reader filled in" : (ocrMode() === "cloud" ? ". Read with cloud" : "")));
           }).catch(function () {
             detailRereading = false;
             toast("The re-reading didn't finish — the recipe's words stay as they are");
@@ -3339,13 +3423,21 @@
           var keepTitle = els.title.value;
           els.scanArea.hidden = false;
           $("scan-status").style.display = "";
-          window.scrollTo(0, 0);
+          // The page is NOT scrolled to the top for a re-read:
+          // the cook stays where they were, the form's words
+          // are replaced in place when the reads finish, and
+          // the scroll position is put back afterwards (the
+          // scan status area opening can shift things while
+          // the reads run).
+          var keepScrollY = window.scrollY || 0;
           var texts = [], flags = [], offset = 0;
           var chain = Promise.resolve();
           photos.forEach(function (src, idx) {
             chain = chain.then(function () {
               var title = "Re-reading photo " + (idx + 1) + " of " + photos.length + "…";
               var sub = "After an edit, all the photos are read again in order and their words put together — photo 1 first.";
+              if (ocrMode() === "cloud" && ocrApiKey()) sub = "Read with cloud — all the photos are read again in order and their words put together — photo 1 first. The words below stay as they are until the new ones are ready.";
+              else if (ocrMode() === "cloud") sub = "Key needed for cloud, so the photos are read on-device instead — in order, photo 1 first. The words below stay as they are until the new ones are ready.";
               setScanState(title, sub, idx / photos.length, false);
               return ocrReadPhoto(src, function (m) {
                 if (m.status === "recognizing text") {
@@ -3367,6 +3459,7 @@
             if (combined.trim().length < 8) {
               pendingScanFlags = null;
               setScanState("The re-read found no words", "The photo was edited, but the words stay as they were — the photos may be too blurry, dark, or tilted to read.", 0, true);
+              window.scrollTo(0, keepScrollY);
               return;
             }
             els.rawText.value = combined;
@@ -3375,10 +3468,12 @@
             editMarks = { i: [], g: [] };
             fillForm(parseRecipeText(combined));
             if (keepTitle && keepTitle.trim()) els.title.value = keepTitle;
-            setScanState("Done — all " + photos.length + (photos.length === 1 ? " photo" : " photos") + " re-read in order", (keyNeededFallback ? "Key needed for cloud, so the photos were read on-device instead. " : fallbackHappened ? "The chosen reader couldn't read every photo, so the back-up on-device reader filled in. " : "") + "The words below are every photo's words put together, photo 1 first. Sort the lines below, then save.", 1, true);
+            setScanState("Done — all " + photos.length + (photos.length === 1 ? " photo" : " photos") + " re-read in order", (keyNeededFallback ? "Key needed for cloud, so the photos were read on-device instead. " : fallbackHappened ? "The chosen reader couldn't read every photo, so the back-up on-device reader filled in. " : (ocrMode() === "cloud" ? "Read with cloud. " : "")) + "The words below are every photo's words put together, photo 1 first. Sort the lines below, then save.", 1, true);
+            window.scrollTo(0, keepScrollY);
           }).catch(function () {
             formRereading = false;
             setScanState("The re-reading didn't finish", "The photo was edited, but the words stay as they were.", 0, true);
+            window.scrollTo(0, keepScrollY);
           });
         }
 
@@ -5095,9 +5190,72 @@
           // personal key is saved on this device — never
           // otherwise — so the state is impossible to miss
           // and never a surprise mid-scan.
-          var needKey = mode === "cloud" && !ocrApiKey();
+          var hasKey = !!ocrApiKey();
+          var needKey = mode === "cloud" && !hasKey;
           var kns = document.querySelectorAll(".key-needed");
           for (var j = 0; j < kns.length; j++) kns[j].hidden = !needKey;
+          // Once a key is saved, each top reader switch tucks
+          // its long reader notes (and the free-key link inside
+          // them) and its key management away under a closed
+          // "Reader & key details" tab, with only a short
+          // "Cloud key saved" line outside it. With no key
+          // saved, the notes stand open as before and there is
+          // no tab and no saved line. The tab's open state is
+          // kept per switch, so this can be re-run freely —
+          // opening a tab never switches readers, never
+          // re-reads photos and never touches saved data.
+          var switches = document.querySelectorAll(".reader-switch");
+          for (var k2 = 0; k2 < switches.length; k2++) {
+            var sw = switches[k2];
+            var open = sw.getAttribute("data-details-open") === "1";
+            var savedLine = sw.querySelector(".key-saved-line");
+            var toggle = sw.querySelector(".reader-details-toggle");
+            var notes = sw.querySelector(".reader-notes");
+            var manage = sw.querySelector(".key-manage");
+            if (savedLine) savedLine.hidden = !hasKey;
+            if (toggle) {
+              toggle.hidden = !hasKey;
+              toggle.setAttribute("aria-expanded", (hasKey && open) ? "true" : "false");
+            }
+            if (notes) notes.hidden = hasKey && !open;
+            if (manage) manage.hidden = !hasKey || !open;
+          }
+          // The bottom-of-home Add key section shows the same
+          // truth: "Key activated" and a Remove key button
+          // while a key is saved, the plain "Add key" heading
+          // while none is.
+          var akTitle = $("add-key-title");
+          var akActive = $("add-key-active");
+          var akRemove = $("add-key-remove");
+          var akInput = $("add-key-input");
+          if (akTitle) akTitle.hidden = hasKey;
+          if (akActive) akActive.hidden = !hasKey;
+          if (akRemove) akRemove.hidden = !hasKey;
+          if (akInput) akInput.placeholder = hasKey ? "Paste a new key to change it" : "Your free OCR.space key";
+        }
+        // The one key store, written from wherever a key is
+        // saved — a "Key needed" notice up top, the key
+        // management inside a details tab, or the Add key
+        // section at the bottom of the home screen. Saving
+        // starts every details tab closed, so the long notes
+        // tuck away the moment a key lands.
+        function saveOcrKey(v) {
+          try { localStorage.setItem(OCR_API_KEY_KEY, v); } catch (e) {}
+          var sws = document.querySelectorAll(".reader-switch");
+          for (var i = 0; i < sws.length; i++) sws[i].setAttribute("data-details-open", "0");
+          applyOcrSettings();
+        }
+        // Removing the key, from any of the same places, brings
+        // the full descriptions and the free-key link back out
+        // of the tab at once (applyOcrSettings does that part).
+        // It switches no reader and re-reads nothing.
+        function removeOcrKey() {
+          try { localStorage.removeItem(OCR_API_KEY_KEY); } catch (e) {}
+          var sws = document.querySelectorAll(".reader-switch");
+          for (var i = 0; i < sws.length; i++) sws[i].setAttribute("data-details-open", "0");
+          var ak = $("add-key-input");
+          if (ak) ak.value = "";
+          applyOcrSettings();
         }
         (function wireOcrSettings() {
           var btns = document.querySelectorAll(".reader-btn");
@@ -5134,8 +5292,7 @@
                   toast("Paste your free key first — the link in the notice opens the page that gives you one");
                   return;
                 }
-                try { localStorage.setItem(OCR_API_KEY_KEY, v); } catch (e) {}
-                applyOcrSettings();
+                saveOcrKey(v);
                 toast("Key saved on this device only");
               });
             })(knSaves[s2]);
@@ -5152,6 +5309,55 @@
               });
             })(knDevs[d2]);
           }
+          // The "Reader & key details" tabs: one press opens,
+          // one press closes. A tab press does nothing else —
+          // no reader switch, no re-read, no data touched; it
+          // only flips that switch's own open state and lets
+          // applyOcrSettings show or hide the notes.
+          var rdToggles = document.querySelectorAll(".reader-details-toggle");
+          for (var t2 = 0; t2 < rdToggles.length; t2++) {
+            (function (b) {
+              b.addEventListener("click", function () {
+                var sw = b.closest ? b.closest(".reader-switch") : b.parentNode;
+                if (!sw) return;
+                sw.setAttribute("data-details-open", sw.getAttribute("data-details-open") === "1" ? "0" : "1");
+                applyOcrSettings();
+              });
+            })(rdToggles[t2]);
+          }
+          // Remove key, inside an open details tab.
+          var rmBtns = document.querySelectorAll(".key-remove-btn");
+          for (var r2 = 0; r2 < rmBtns.length; r2++) {
+            (function (b) {
+              b.addEventListener("click", function () {
+                removeOcrKey();
+                toast("Cloud key removed — the full notes and free-key link are back by the reader switch");
+              });
+            })(rmBtns[r2]);
+          }
+          // The Add key section at the bottom of the home
+          // screen: the same key store as the top key boxes, so
+          // saving here turns the cloud on everywhere (and the
+          // top tabs tuck away), and removing here brings the
+          // top descriptions back — each side updates the other
+          // instantly through applyOcrSettings.
+          var akSave = $("add-key-save");
+          if (akSave) akSave.addEventListener("click", function () {
+            var inp = $("add-key-input");
+            var v = inp ? (inp.value || "").trim() : "";
+            if (!v) {
+              toast("Paste your free key first — the link in this section opens the page that gives you one");
+              return;
+            }
+            saveOcrKey(v);
+            if (inp) inp.value = "";
+            toast("Key saved on this device only — Key activated");
+          });
+          var akRemove = $("add-key-remove");
+          if (akRemove) akRemove.addEventListener("click", function () {
+            removeOcrKey();
+            toast("Cloud key removed — add a free key to use the cloud again");
+          });
         })();
 
         /* ---------------- update log ---------------- */
