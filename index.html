@@ -556,6 +556,7 @@
       }
       .add-key-title { font-weight: 700; font-size: 16px; margin: 0; }
       .add-key-active { font-weight: 700; font-size: 16px; color: var(--herb); margin: 0; }
+      .add-key-note { font-size: 13.5px; color: var(--muted); line-height: 1.45; margin: 8px 0 0; }
       .add-key-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
       .add-key-row input {
         flex: 1 1 210px; min-height: 44px; padding: 10px 12px;
@@ -1056,6 +1057,7 @@
         <div class="add-key-card" id="add-key-card">
           <p class="add-key-title" id="add-key-title">Add key</p>
           <p class="add-key-active" id="add-key-active" hidden>Key activated</p>
+          <p class="add-key-note" id="add-key-note" hidden></p>
           <div class="add-key-row">
             <input type="text" id="add-key-input" placeholder="Your free OCR.space key" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Your free OCR.space key" />
             <button type="button" class="ocr-key-save" id="add-key-save">Save key</button>
@@ -1113,7 +1115,7 @@
               </div>
               <div class="key-needed" hidden>
                 <p class="key-needed-title">Key needed for the cloud reader</p>
-                <p class="key-needed-text">The cloud reader only runs with your own free key — there is no shared key. Until you add one, photos are read on-device instead, and the scan status will say so. Your key is saved on this device only.</p>
+                <p class="key-needed-text">The cloud reader only runs with your own free key — there is no shared key. Until you add one, photos are read on-device instead, and the scan status will say so. A key lives only in the copy of this app where you type it: if you added yours in another copy, or at another address, it isn't in this one — add it here too.</p>
 <a class="freekey-link freekey-block" href="https://ocr.space/ocrapi/freekey" target="_blank" rel="noopener">Get a free cloud key</a>
                 <div class="ocr-key-row key-needed-row">
                   <input type="text" class="key-needed-input" placeholder="Your free OCR.space key" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Your free OCR.space key" />
@@ -1237,7 +1239,7 @@
           </div>
           <div class="key-needed" hidden>
             <p class="key-needed-title">Key needed for the cloud reader</p>
-            <p class="key-needed-text">The cloud reader only runs with your own free key — there is no shared key. Until you add one, photos are read on-device instead, and the scan status will say so. Your key is saved on this device only.</p>
+            <p class="key-needed-text">The cloud reader only runs with your own free key — there is no shared key. Until you add one, photos are read on-device instead, and the scan status will say so. A key lives only in the copy of this app where you type it: if you added yours in another copy, or at another address, it isn't in this one — add it here too.</p>
 <a class="freekey-link freekey-block" href="https://ocr.space/ocrapi/freekey" target="_blank" rel="noopener">Get a free cloud key</a>
             <div class="ocr-key-row key-needed-row">
               <input type="text" class="key-needed-input" placeholder="Your free OCR.space key" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Your free OCR.space key" />
@@ -1326,7 +1328,7 @@
           <button type="button" class="theme-btn" data-theme-pref="dark" aria-pressed="false">Dark</button>
         </div>
       </div>
-      <p class="app-version"><button type="button" class="version-btn" id="app-version" aria-haspopup="dialog">v2.4 · What's new</button></p>
+      <p class="app-version"><button type="button" class="version-btn" id="app-version" aria-haspopup="dialog">v2.5 · What's new</button></p>
       <p class="terms-foot"><button class="text-btn" id="btn-terms-link" type="button">Terms and Conditions</button></p>
     </div>
 
@@ -1451,6 +1453,7 @@
       <div class="confirm-card">
         <h3 id="update-log-title">What's new</h3>
         <ul class="update-log-list">
+          <li><strong>v2.5</strong> Cloud reader fix: if the cloud can't read a photo, the scan status now says exactly why — key refused, free limit reached, photo too big, or no connection — instead of quietly swapping readers. Saving a key now checks it with the cloud reader straight away, big photos are shrunk to fit the free cloud limit, and the “Key needed” notice explains that a key lives only in the copy where you type it.</li>
           <li><strong>v2.4</strong> Once a cloud key is saved, the long reader notes and free-key link tuck into a “Reader &amp; key details” tab up top — tap to open or close it. You can also add a key right at the bottom of the home screen. Cloud re-reads now update the words in place.</li>
           <li><strong>v2.3</strong> Removed the Photo reader toggle and its notes from the bottom of the page — the reader switch now lives only up top, under the photos.</li>
           <li><strong>v2.2</strong> Removed the duplicate key request at the bottom of the page — the key box, “Get a free cloud key” link and “Key needed” notice now live only up top, by the reader switch.</li>
@@ -1499,7 +1502,7 @@
         // it on every update: minor updates step 0.1 → 0.2 → 0.3 …,
         // a major update moves to the next whole number — 1.0,
         // 2.0, and so on.
-        var APP_VERSION = "2.4";
+        var APP_VERSION = "2.5";
         var recipes = [];
         var editingId = null;
         var viewingId = null;
@@ -2321,6 +2324,7 @@
           detailRereading = true;
           fallbackHappened = false;
           keyNeededFallback = false;
+          cloudFailReason = "";
           toast("Photo updated — re-reading all the photos in order…");
           var texts = [];
           var chain = Promise.resolve();
@@ -2352,7 +2356,7 @@
             saveAmountFlags();
             persist();
             if (viewingId === r.id) renderIngredients();
-            toast("All " + photos.length + (photos.length === 1 ? " photo" : " photos") + " re-read in order — the recipe's words are updated" + (keyNeededFallback ? ". Key needed for cloud, so they were read on-device instead" : fallbackHappened ? ". The chosen reader couldn't read every photo, so the back-up on-device reader filled in" : (ocrMode() === "cloud" ? ". Read with cloud" : "")));
+            toast("All " + photos.length + (photos.length === 1 ? " photo" : " photos") + " re-read in order — the recipe's words are updated" + (keyNeededFallback ? ". Key needed for cloud on this copy, so they were read on-device instead" : fallbackHappened ? (cloudFailReason ? ". The cloud reader couldn't read every photo — " + cloudFailReason + " — so the back-up on-device reader filled in" : ". The chosen reader couldn't read every photo, so the back-up on-device reader filled in") : (ocrMode() === "cloud" ? ". Read with cloud" : "")));
           }).catch(function () {
             detailRereading = false;
             toast("The re-reading didn't finish — the recipe's words stay as they are");
@@ -3126,8 +3130,8 @@
           renderSortPanel();
           var readNote = "";
           if (lastReadVia === "cloud") readNote = "Read with the cloud reader. ";
-          else if (lastReadVia === "device-keyneeded") readNote = "Key needed for cloud, so this was read on-device instead. ";
-          else if (lastReadVia === "device-fallback") readNote = "The chosen reader couldn't read this photo, so the back-up on-device reader was used instead. ";
+          else if (lastReadVia === "device-keyneeded") readNote = "Key needed for cloud on this copy, so this was read on-device instead. ";
+          else if (lastReadVia === "device-fallback") readNote = cloudFallbackNote();
           setScanState("Photo " + pendingPhotos.length + " added — its words went in below the earlier photos, in order", readNote + "Sort the lines below, then save — or add the next photo. " + CROP_REMINDER, 1, true);
         }
 
@@ -3204,6 +3208,7 @@
         var lastReadVia = null;
         var fallbackHappened = false; // any fallback in the current batch of reads
         var keyNeededFallback = false; // any key-needed on-device read in the current batch
+        var cloudFailReason = ""; // why the cloud last failed, in plain words — shown in the scan status, never swallowed
 
         // Every reader's raw words are tidied the exact same
         // way — the page's blank rows put back from the reader's
@@ -3222,21 +3227,115 @@
           return { text: repairProseFractions(repairTextFractions(preRepair)), flags: scanFlags };
         }
 
-        // The free cloud reader: OCR.space reads the photo and
-        // sends back its words. It runs only with the cook's
-        // own personal key — with none saved it refuses here
-        // too, as a back-stop to the key-needed path in
-        // ocrReadPhoto, and no shared or test key is ever sent
-        // in its place. The key leaves the device only in this
-        // one request, as the apikey header to OCR.space.
-        // Anything that goes wrong — no connection, an HTTP or
-        // API error, a quota refusal, empty words, or a photo
-        // over the free 1 MB limit — rejects, and the caller
-        // falls back to the on-device reader automatically.
-        function cloudReadPhoto(imageDataURL) {
-          if (typeof fetch === "undefined") return Promise.reject(new Error("no fetch"));
-          if (!ocrApiKey()) return Promise.reject(new Error("key needed for the cloud reader"));
-          if (dataURLBytes(imageDataURL) > OCR_CLOUD_LIMIT) return Promise.reject(new Error("photo over the free 1 MB limit"));
+        // A cloud failure carries its kind, so the scan status
+        // can say plainly WHY the cloud didn't read a photo
+        // instead of quietly swapping readers: "key" (the key
+        // was refused — mistyped, or not activated yet),
+        // "quota" (the free limit was reached), "size" (the
+        // photo stayed over the free 1 MB limit even shrunk),
+        // "network" (no connection, or the request was
+        // blocked), "timeout", "empty" (no words found), or
+        // "api" (any other answer, with its message kept).
+        // Until v2.5 every one of these was thrown away by the
+        // caller's catch-all, so any cloud failure looked the
+        // same: a silent swap to the on-device reader.
+        function cloudFailure(kind, detail) {
+          var e = new Error(kind);
+          e.cloudKind = kind;
+          e.cloudDetail = detail || "";
+          return e;
+        }
+        function cloudReasonText(err) {
+          var kind = err && err.cloudKind;
+          if (kind === "key") return "that key was refused — it may be mistyped, or not activated yet (OCR.space emails an activation link with a new key)";
+          if (kind === "quota") return "the free cloud limit was reached for now";
+          if (kind === "size") return "the photo was over the free cloud reader's 1 MB limit, even after shrinking it";
+          if (kind === "network") return "the cloud reader couldn't be reached — no connection, or the request was blocked";
+          if (kind === "timeout") return "the cloud reader took too long to answer";
+          if (kind === "empty") return "the cloud reader found no words in that photo";
+          if (kind === "api") return "the cloud reader sent back an error" + (err.cloudDetail ? " (" + err.cloudDetail + ")" : "");
+          return "the cloud reader didn't answer properly";
+        }
+        // Sort an OCR.space answer — an HTTP error status, or
+        // a reply whose body carries the error — into a
+        // cloudFailure. An invalid or unactivated key is
+        // answered with HTTP 403 and an "E555: API key not
+        // valid" body, and the free limit with a limit
+        // message; both shapes were checked against the live
+        // service while this fix was written.
+        function classifyCloudError(status, json) {
+          var msg = "";
+          if (json) {
+            if (typeof json.error === "string") msg = json.error;
+            else if (json.ErrorMessage) msg = Array.isArray(json.ErrorMessage) ? json.ErrorMessage.join("; ") : String(json.ErrorMessage);
+            else if (json.ErrorDetails) msg = String(json.ErrorDetails);
+          }
+          var low = msg.toLowerCase();
+          if (status === 403 || low.indexOf("api key") >= 0 || low.indexOf("e555") >= 0) return cloudFailure("key", msg);
+          if (status === 429 || low.indexOf("limit") >= 0 || low.indexOf("quota") >= 0) return cloudFailure("quota", msg);
+          if (low.indexOf("file size") >= 0 || low.indexOf("too large") >= 0 || low.indexOf("maximum size") >= 0) return cloudFailure("size", msg);
+          return cloudFailure("api", msg || ("HTTP " + status));
+        }
+        // The plain sentence a scan status shows when the
+        // cloud was tried and the on-device reader had to step
+        // in — with the specific reason, when one is known.
+        function cloudFallbackNote() {
+          return cloudFailReason
+            ? "The cloud reader couldn't read this photo — " + cloudFailReason + " — so the on-device reader read it instead. "
+            : "The chosen reader couldn't read this photo, so the back-up on-device reader was used instead. ";
+        }
+        // Re-encode a photo smaller (fewer pixels, then a
+        // lighter JPEG) — used only to fit a photo under the
+        // cloud's free 1 MB limit; the photo kept with the
+        // recipe is never touched.
+        function shrinkDataURL(dataURL, maxDim, quality) {
+          return new Promise(function (resolve) {
+            var img = new Image();
+            img.onload = function () {
+              try {
+                var scale = Math.min(1, maxDim / Math.max(img.naturalWidth, img.naturalHeight));
+                var w = Math.max(1, Math.round(img.naturalWidth * scale));
+                var h = Math.max(1, Math.round(img.naturalHeight * scale));
+                var canvas = document.createElement("canvas");
+                canvas.width = w; canvas.height = h;
+                var ctx = canvas.getContext("2d");
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, w, h);
+                ctx.drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL("image/jpeg", quality));
+              } catch (e) { resolve(null); }
+            };
+            img.onerror = function () { resolve(null); };
+            img.src = dataURL;
+          });
+        }
+        // Fit a photo under the free cloud limit: as it is
+        // when it already fits, otherwise re-encoded smaller
+        // and smaller until it fits — only a photo that still
+        // won't fit rejects, as a "size" failure. (Before this,
+        // a photo even a little over the limit was never sent
+        // to the cloud at all.)
+        function fitForCloud(dataURL) {
+          if (dataURLBytes(dataURL) <= OCR_CLOUD_LIMIT) return Promise.resolve(dataURL);
+          var steps = [[1400, 0.7], [1200, 0.6], [1000, 0.52], [820, 0.46]];
+          var i = 0;
+          function attempt() {
+            if (i >= steps.length) return Promise.reject(cloudFailure("size"));
+            var s = steps[i++];
+            return shrinkDataURL(dataURL, s[0], s[1]).then(function (out) {
+              if (out && dataURLBytes(out) <= OCR_CLOUD_LIMIT) return out;
+              return attempt();
+            });
+          }
+          return attempt();
+        }
+        // One cloud request: the photo goes to OCR.space with
+        // the given key as the apikey header — the only place
+        // a key ever leaves the device. Resolves with the
+        // reply JSON; rejects with a cloudFailure naming what
+        // went wrong (a refused key, the limit, no connection,
+        // a timeout…).
+        function cloudFetch(imageDataURL, key, timeoutMs) {
           var body = new URLSearchParams();
           body.append("base64Image", imageDataURL);
           body.append("language", "eng");
@@ -3244,31 +3343,74 @@
           body.append("detectOrientation", "true");
           body.append("scale", "true");
           var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
-          var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 90000) : null;
+          var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, timeoutMs) : null;
+          function done() { if (timer) clearTimeout(timer); }
           return fetch("https://api.ocr.space/parse/image", {
             method: "POST",
-            headers: { apikey: ocrApiKey() },
+            headers: { apikey: key },
             body: body,
             signal: ctrl ? ctrl.signal : undefined
           }).then(function (res) {
-            if (timer) clearTimeout(timer);
-            if (!res.ok) throw new Error("cloud reader HTTP " + res.status);
-            return res.json();
+            return res.json().then(function (json) { return { status: res.status, ok: res.ok, json: json }; },
+              function () { return { status: res.status, ok: res.ok, json: null }; });
+          }).then(function (r) {
+            done();
+            if (!r.ok || !r.json || r.json.error) throw classifyCloudError(r.status, r.json);
+            return r.json;
+          }).catch(function (err) {
+            done();
+            if (err && err.cloudKind) throw err;
+            if (err && err.name === "AbortError") throw cloudFailure("timeout");
+            throw cloudFailure("network");
+          });
+        }
+
+        // The free cloud reader: OCR.space reads the photo and
+        // sends back its words. It runs only with the cook's
+        // own personal key — with none saved it refuses here
+        // too, as a back-stop to the key-needed path in
+        // ocrReadPhoto, and no shared or test key is ever sent
+        // in its place. The key leaves the device only in this
+        // one request, as the apikey header to OCR.space.
+        // Anything that goes wrong rejects with a cloudFailure
+        // naming the reason, and the caller falls back to the
+        // on-device reader automatically — with the reason
+        // shown in the scan status, never silently.
+        function cloudReadPhoto(imageDataURL) {
+          if (typeof fetch === "undefined") return Promise.reject(cloudFailure("network"));
+          if (!ocrApiKey()) return Promise.reject(cloudFailure("key"));
+          return fitForCloud(imageDataURL).then(function (fitURL) {
+            return cloudFetch(fitURL, ocrApiKey(), 90000);
           }).then(function (json) {
-            if (!json || json.IsErroredOnProcessing) {
-              var msg = json && json.ErrorMessage ? String(json.ErrorMessage) : "cloud reader error";
-              throw new Error(msg);
-            }
+            if (json.IsErroredOnProcessing) throw classifyCloudError(200, json);
             var parts = [];
             (json.ParsedResults || []).forEach(function (r) {
               if (r && r.ParsedText) parts.push(r.ParsedText);
             });
             var text = parts.join("\n");
-            if (!text.trim()) throw new Error("cloud reader found no words");
+            if (!text.trim()) throw cloudFailure("empty");
             return finishRead(text, "");
+          });
+        }
+
+        // Check a key against the cloud reader the moment it
+        // is saved, with a one-pixel test photo, so a mistyped
+        // or unactivated key is found out straight away
+        // instead of at the next scan. Resolves "ok", "quota"
+        // (the key works — the free limit is simply reached
+        // just now), "refused" (with the plain reason) or
+        // "unreachable" (no answer — the key may still be
+        // fine). The key goes only to OCR.space, as the apikey
+        // header of this one request.
+        var OCR_TEST_PIXEL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+        function checkOcrKey(key) {
+          if (typeof fetch === "undefined") return Promise.resolve({ state: "unreachable" });
+          return cloudFetch(OCR_TEST_PIXEL, key, 30000).then(function () {
+            return { state: "ok" };
           }).catch(function (err) {
-            if (timer) clearTimeout(timer);
-            throw err;
+            if (err && err.cloudKind === "quota") return { state: "quota" };
+            if (err && (err.cloudKind === "network" || err.cloudKind === "timeout")) return { state: "unreachable" };
+            return { state: "refused", reason: cloudReasonText(err) };
           });
         }
 
@@ -3314,7 +3456,13 @@
             return cloudReadPhoto(imageDataURL).then(function (out) {
               lastReadVia = "cloud";
               return out;
-            }).catch(function () {
+            }).catch(function (err) {
+              // The reason is kept, not swallowed: the scan
+              // status names it, so a refused key, the free
+              // limit, an oversize photo or a lost connection
+              // is never mistaken for "the cloud just didn't
+              // work".
+              if (!cloudFailReason) cloudFailReason = cloudReasonText(err);
               return tesseractFallback(imageDataURL, onProgress);
             });
           }
@@ -3350,6 +3498,7 @@
         }
 
         function runOCR(imageDataURL, append) {
+          cloudFailReason = "";
           var readTitle = append ? "Reading photo " + Math.max(1, pendingPhotos.length) + " of up to " + MAX_PHOTOS + "…" : "Reading your recipe…";
           if (!readerAvailable()) {
             setScanState("Automatic reading isn't available right now", "No problem — paste or type the recipe text in the box below the form, then tap “Rebuild the recipe from this text.”", 0, true);
@@ -3384,8 +3533,8 @@
             fillForm(parseRecipeText(text));
             var doneNote = "";
             if (lastReadVia === "cloud") doneNote = "Read with the cloud reader. ";
-            else if (lastReadVia === "device-keyneeded") doneNote = "Key needed for cloud, so this was read on-device instead. ";
-            else if (lastReadVia === "device-fallback") doneNote = "The chosen reader couldn't read this photo, so the back-up on-device reader was used instead. ";
+            else if (lastReadVia === "device-keyneeded") doneNote = "Key needed for cloud on this copy, so this was read on-device instead. ";
+            else if (lastReadVia === "device-fallback") doneNote = cloudFallbackNote();
             setScanState("Done — here's what it read", doneNote + "Use Sort the lines below — tap Edit on a line to fix anything the scan misread, and mark lines as Ingredient or Instruction — then save. If the recipe runs onto more pages, add them with the photo buttons below: they're read in order, from top to bottom.", 1, true);
             els.title.focus();
           }).catch(function () {
@@ -3419,6 +3568,7 @@
           formRereading = true;
           fallbackHappened = false;
           keyNeededFallback = false;
+          cloudFailReason = "";
           var photos = pendingPhotos.slice();
           var keepTitle = els.title.value;
           els.scanArea.hidden = false;
@@ -3468,7 +3618,7 @@
             editMarks = { i: [], g: [] };
             fillForm(parseRecipeText(combined));
             if (keepTitle && keepTitle.trim()) els.title.value = keepTitle;
-            setScanState("Done — all " + photos.length + (photos.length === 1 ? " photo" : " photos") + " re-read in order", (keyNeededFallback ? "Key needed for cloud, so the photos were read on-device instead. " : fallbackHappened ? "The chosen reader couldn't read every photo, so the back-up on-device reader filled in. " : (ocrMode() === "cloud" ? "Read with cloud. " : "")) + "The words below are every photo's words put together, photo 1 first. Sort the lines below, then save.", 1, true);
+            setScanState("Done — all " + photos.length + (photos.length === 1 ? " photo" : " photos") + " re-read in order", (keyNeededFallback ? "Key needed for cloud on this copy, so the photos were read on-device instead. " : fallbackHappened ? (cloudFailReason ? "The cloud reader couldn't read every photo — " + cloudFailReason + " — so the back-up on-device reader filled in. " : "The chosen reader couldn't read every photo, so the back-up on-device reader filled in. ") : (ocrMode() === "cloud" ? "Read with cloud. " : "")) + "The words below are every photo's words put together, photo 1 first. Sort the lines below, then save.", 1, true);
             window.scrollTo(0, keepScrollY);
           }).catch(function () {
             formRereading = false;
@@ -5255,7 +5405,51 @@
           for (var i = 0; i < sws.length; i++) sws[i].setAttribute("data-details-open", "0");
           var ak = $("add-key-input");
           if (ak) ak.value = "";
+          setKeyVerdict("");
           applyOcrSettings();
+        }
+        // The verdict of the last key check, shown as one
+        // short line in the Add key section at the bottom of
+        // the home screen — the one place that is always
+        // visible. "ok" confirms the cloud accepted the key;
+        // "refused" keeps the plain reason on screen until
+        // the key is changed or removed, so it can't be
+        // missed the way a passing toast can.
+        function setKeyVerdict(state, reason) {
+          var n = $("add-key-note");
+          if (!n) return;
+          if (state === "ok") {
+            n.textContent = "Checked — the cloud reader accepted this key.";
+            n.hidden = false;
+          } else if (state === "refused") {
+            n.textContent = "The cloud reader refused that key — " + (reason || "it was not accepted") + ". Check the key, or remove it and add the right one.";
+            n.hidden = false;
+          } else {
+            n.textContent = "";
+            n.hidden = true;
+          }
+        }
+        // Save a key (from any key box) and check it with the
+        // cloud reader straight away, so a mistyped or
+        // unactivated key is known about now — with the plain
+        // reason — instead of surfacing as a failed scan
+        // later. The key itself is saved either way, on this
+        // device only, exactly as before.
+        function saveAndCheckKey(v) {
+          saveOcrKey(v);
+          setKeyVerdict("");
+          toast("Key saved on this device only — checking it with the cloud reader…");
+          checkOcrKey(v).then(function (r) {
+            if (r.state === "ok" || r.state === "quota") {
+              setKeyVerdict("ok");
+              toast("That key works — the cloud reader accepted it");
+            } else if (r.state === "refused") {
+              setKeyVerdict("refused", r.reason);
+              toast("Key saved, but the cloud reader refused it — " + r.reason);
+            } else {
+              toast("Key saved on this device only — the cloud couldn't be reached to check it just now, so try a scan when you're online");
+            }
+          });
         }
         (function wireOcrSettings() {
           var btns = document.querySelectorAll(".reader-btn");
@@ -5292,8 +5486,7 @@
                   toast("Paste your free key first — the link in the notice opens the page that gives you one");
                   return;
                 }
-                saveOcrKey(v);
-                toast("Key saved on this device only");
+                saveAndCheckKey(v);
               });
             })(knSaves[s2]);
           }
@@ -5349,9 +5542,8 @@
               toast("Paste your free key first — the link in this section opens the page that gives you one");
               return;
             }
-            saveOcrKey(v);
             if (inp) inp.value = "";
-            toast("Key saved on this device only — Key activated");
+            saveAndCheckKey(v);
           });
           var akRemove = $("add-key-remove");
           if (akRemove) akRemove.addEventListener("click", function () {
