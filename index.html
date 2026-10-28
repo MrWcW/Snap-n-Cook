@@ -427,7 +427,7 @@
       .sort-list { display: flex; flex-direction: column; border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface-2); overflow: hidden; }
       .sort-row { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; padding: 9px 11px; border-top: 1px solid var(--line); }
       .sort-row:first-child { border-top: none; }
-      .sort-text { flex: 1; min-width: 0; font-size: 14.5px; overflow-wrap: break-word; }
+      .sort-text { flex: 1 1 220px; min-width: 0; font-size: 14.5px; overflow-wrap: break-word; }
       .sort-kind { flex: none; font-size: 11.5px; font-weight: 700; letter-spacing: .02em; padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
       .sort-kind.inst { background: var(--herb-soft); color: var(--herb); }
       .sort-check { flex: none; font-size: 11.5px; font-weight: 700; letter-spacing: .02em; padding: 2px 8px; border-radius: 999px; border: 1.5px solid var(--gold); color: var(--gold); }
@@ -464,6 +464,64 @@
         font-size: 14px; font-weight: 700; color: var(--muted);
       }
       .theme-btn.active { background: var(--accent); color: var(--on-accent); }
+
+      /* ---------- Photo reader (cloud / on-device) ---------- */
+      .reader-seg { flex-wrap: wrap; justify-content: center; border-radius: 18px; max-width: 100%; }
+      .reader-seg .reader-btn { flex: 1 1 auto; }
+      .reader-switch {
+        margin-top: 14px; padding: 12px; text-align: center;
+        border: 1.5px solid var(--line); border-radius: 12px; background: var(--surface-2);
+      }
+      .reader-switch .theme-label { display: block; margin-bottom: 8px; }
+      .reader-notes { margin-top: 9px; text-align: left; }
+      .reader-notes p { font-size: 12.5px; color: var(--muted); line-height: 1.45; margin: 3px 0; }
+      .reader-notes p strong { color: var(--ink); }
+      .reader-btn {
+        border: none; background: none; padding: 10px 16px; min-height: 44px;
+        font-size: 14px; font-weight: 700; color: var(--muted);
+      }
+      .reader-btn.active { background: var(--accent); color: var(--on-accent); }
+      .reader-note { font-size: 13px; color: var(--muted); line-height: 1.5; max-width: 540px; margin: 10px auto 0; }
+      .reader-notes a, .reader-note a { color: var(--accent); font-weight: 700; }
+      /* The free-key link is a real button-sized tap target —
+         at least 44px tall, bright in light and dark mode —
+         never a small text link a finger can miss. */
+      a.freekey-link, .reader-notes a.freekey-link, .reader-note a.freekey-link, .key-needed-text a.freekey-link {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-height: 44px; padding: 10px 18px; border-radius: 999px;
+        background: var(--accent); color: var(--on-accent);
+        font-size: 14px; font-weight: 700; text-decoration: none;
+        cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      }
+      a.freekey-link:active { opacity: .85; }
+      a.freekey-block { display: flex; margin: 10px 0 2px; }
+      .reader-note a.freekey-block { display: flex; margin: 0 auto 8px; }
+      .key-needed {
+        margin: 12px auto 0; max-width: 540px; padding: 12px; text-align: left;
+        border: 1.5px solid var(--accent); border-radius: 12px; background: var(--accent-soft);
+      }
+      .reader-switch .key-needed { max-width: none; }
+      .key-needed-title { font-size: 14.5px; font-weight: 700; color: var(--ink); margin: 0 0 4px; }
+      .key-needed-text { font-size: 12.5px; color: var(--muted); line-height: 1.45; margin: 0; }
+      .key-needed-text a { color: var(--accent); font-weight: 700; }
+      .key-needed-row { padding: 0; justify-content: flex-start; }
+      .key-needed-device {
+        margin-top: 10px; min-height: 44px; padding: 10px 16px; border-radius: 12px;
+        border: 1.5px solid var(--accent); background: var(--surface);
+        color: var(--ink); font-size: 14px; font-weight: 700;
+      }
+      .ocr-key-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 12px; padding: 0 6px; }
+      .ocr-key-row input {
+        flex: 1 1 210px; max-width: 330px; min-height: 44px; padding: 10px 12px;
+        border: 1.5px solid var(--line); border-radius: 12px;
+        background: var(--surface); color: var(--ink); font-size: 14px;
+      }
+      .ocr-key-row input:focus { border-color: var(--accent); outline: none; }
+      .ocr-key-save {
+        min-height: 44px; padding: 10px 18px; border-radius: 12px;
+        border: 1.5px solid var(--accent); background: var(--accent);
+        color: var(--on-accent); font-size: 14px; font-weight: 700;
+      }
 
       /* ---------- Update log ---------- */
       .update-log-list {
@@ -972,6 +1030,27 @@
               <button type="button" class="photo-add-btn" id="btn-add-gal">Pick from photos</button>
             </div>
             <p class="photo-note" id="photo-full-note" hidden>That's all 6 photos for this recipe.</p>
+            <div class="reader-switch">
+              <span class="theme-label">Photo reader</span>
+              <div class="theme-seg reader-seg" role="group" aria-label="Photo reader">
+                <button type="button" class="reader-btn" data-ocr-mode="cloud" aria-pressed="true">Cloud first</button>
+                <button type="button" class="reader-btn" data-ocr-mode="device" aria-pressed="false">On-device only</button>
+              </div>
+              <div class="reader-notes">
+                <p><strong>Cloud first</strong> — read online by OCR.space, often more accurate. Photos leave the phone and it needs internet. <a class="freekey-link" href="https://ocr.space/ocrapi/freekey" target="_blank" rel="noopener">Get a free cloud key</a> for your own quota — the cloud reader needs your own key, and without one photos are read on-device instead. If the cloud can't read a photo, the on-device reader steps in automatically.</p>
+                <p><strong>On-device only</strong> — the original reader, right on this phone. Private and works offline, but weaker on small print.</p>
+              </div>
+              <div class="key-needed" hidden>
+                <p class="key-needed-title">Key needed for the cloud reader</p>
+                <p class="key-needed-text">The cloud reader only runs with your own free key — there is no shared key. Until you add one, photos are read on-device instead, and the scan status will say so. Your key is saved on this device only.</p>
+<a class="freekey-link freekey-block" href="https://ocr.space/ocrapi/freekey" target="_blank" rel="noopener">Get a free cloud key</a>
+                <div class="ocr-key-row key-needed-row">
+                  <input type="text" class="key-needed-input" placeholder="Your free OCR.space key" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Your free OCR.space key" />
+                  <button type="button" class="ocr-key-save key-needed-save">Save key</button>
+                </div>
+                <button type="button" class="key-needed-device">Use on-device instead</button>
+              </div>
+            </div>
           </div>
           <label class="photo-toggle" id="photo-toggle" hidden>
             <input type="checkbox" id="f-keep-photo" checked />
@@ -1069,6 +1148,27 @@
         </button>
         <div class="detail-strip" id="detail-strip" hidden aria-label="All the photos saved with this recipe, in order"></div>
         <button class="text-btn detail-edit-photo-btn" id="btn-detail-edit-photo" type="button" hidden>Edit this photo — trim it, or make it brighter or darker</button>
+        <div class="reader-switch" id="detail-reader-switch" hidden>
+          <span class="theme-label">Photo reader</span>
+          <div class="theme-seg reader-seg" role="group" aria-label="Photo reader">
+            <button type="button" class="reader-btn" data-ocr-mode="cloud" aria-pressed="true">Cloud first</button>
+            <button type="button" class="reader-btn" data-ocr-mode="device" aria-pressed="false">On-device only</button>
+          </div>
+          <div class="reader-notes">
+            <p><strong>Cloud first</strong> — read online by OCR.space, often more accurate. Photos leave the phone and it needs internet. <a class="freekey-link" href="https://ocr.space/ocrapi/freekey" target="_blank" rel="noopener">Get a free cloud key</a> for your own quota — the cloud reader needs your own key, and without one photos are read on-device instead. If the cloud can't read a photo, the on-device reader steps in automatically.</p>
+            <p><strong>On-device only</strong> — the original reader, right on this phone. Private and works offline, but weaker on small print.</p>
+          </div>
+          <div class="key-needed" hidden>
+            <p class="key-needed-title">Key needed for the cloud reader</p>
+            <p class="key-needed-text">The cloud reader only runs with your own free key — there is no shared key. Until you add one, photos are read on-device instead, and the scan status will say so. Your key is saved on this device only.</p>
+<a class="freekey-link freekey-block" href="https://ocr.space/ocrapi/freekey" target="_blank" rel="noopener">Get a free cloud key</a>
+            <div class="ocr-key-row key-needed-row">
+              <input type="text" class="key-needed-input" placeholder="Your free OCR.space key" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Your free OCR.space key" />
+              <button type="button" class="ocr-key-save key-needed-save">Save key</button>
+            </div>
+            <button type="button" class="key-needed-device">Use on-device instead</button>
+          </div>
+        </div>
         <div class="detail-meta">
           <span class="chip" id="detail-category"></span>
           <span class="chip" id="detail-time" hidden style="background:var(--herb-soft);color:var(--herb)"></span>
@@ -1149,7 +1249,7 @@
           <button type="button" class="theme-btn" data-theme-pref="dark" aria-pressed="false">Dark</button>
         </div>
       </div>
-      <p class="app-version"><button type="button" class="version-btn" id="app-version" aria-haspopup="dialog">v1.11 · What's new</button></p>
+      <p class="app-version"><button type="button" class="version-btn" id="app-version" aria-haspopup="dialog">v2.3 · What's new</button></p>
       <p class="terms-foot"><button class="text-btn" id="btn-terms-link" type="button">Terms and Conditions</button></p>
     </div>
 
@@ -1274,6 +1374,11 @@
       <div class="confirm-card">
         <h3 id="update-log-title">What's new</h3>
         <ul class="update-log-list">
+          <li><strong>v2.3</strong> Removed the Photo reader toggle and its notes from the bottom of the page — the reader switch now lives only up top, under the photos.</li>
+          <li><strong>v2.2</strong> Removed the duplicate key request at the bottom of the page — the key box, “Get a free cloud key” link and “Key needed” notice now live only up top, by the reader switch.</li>
+          <li><strong>v2.1</strong> PaddleOCR is removed — only Cloud first (OCR.space) and On-device only remain. The cloud reader now needs your own free key: tap “Get a free cloud key” by the reader switch. With no key saved it says “Key needed” and reads on-device instead — no shared key is used quietly. Your key stays saved on this device only.</li>
+          <li><strong>v2.0</strong> The Photo reader switch sits under the photos too, and tapping it re-reads the photos with the new reader right away. Switching readers loses nothing. Sort the lines shows real lines of text again.</li>
+          <li><strong>v1.12</strong> New cloud photo reader (OCR.space) reads first for better accuracy, with the on-device reader as automatic backup. Switch anytime under Photo reader at the bottom, and paste a free key there for your own quota.</li>
           <li><strong>v1.11</strong> Photo editor: the words no longer sit on the trim corners, the corners drag properly, and there's less text.</li>
           <li><strong>v1.10</strong> Fixed for real this time: the photo editor's dim trim shade was covering its own buttons and sliders, so they looked dark and unselectable. Now only the photo is shaded — the buttons and sliders show bright and ready to tap.</li>
           <li><strong>v1.9</strong> Sort the lines does it all now: Edit on any line fixes its words right there — no separate check step. Photo editor buttons and sliders glow as bright as the trim corners.</li>
@@ -1316,7 +1421,7 @@
         // it on every update: minor updates step 0.1 → 0.2 → 0.3 …,
         // a major update moves to the next whole number — 1.0,
         // 2.0, and so on.
-        var APP_VERSION = "1.11";
+        var APP_VERSION = "2.3";
         var recipes = [];
         var editingId = null;
         var viewingId = null;
@@ -2127,12 +2232,14 @@
         function rereadRecipePhotos(r) {
           var photos = photosOf(r);
           if (!photos.length) return;
-          if (typeof Tesseract === "undefined") {
+          if (!readerAvailable()) {
             toast("Photo updated — reading isn't available right now, so the words stay as they are");
             return;
           }
           if (detailRereading) return;
           detailRereading = true;
+          fallbackHappened = false;
+          keyNeededFallback = false;
           toast("Photo updated — re-reading all the photos in order…");
           var texts = [];
           var chain = Promise.resolve();
@@ -2161,7 +2268,7 @@
             saveAmountFlags();
             persist();
             if (viewingId === r.id) renderIngredients();
-            toast("All " + photos.length + (photos.length === 1 ? " photo" : " photos") + " re-read in order — the recipe's words are updated");
+            toast("All " + photos.length + (photos.length === 1 ? " photo" : " photos") + " re-read in order — the recipe's words are updated" + (keyNeededFallback ? ". Key needed for cloud, so they were read on-device instead" : fallbackHappened ? ". The chosen reader couldn't read every photo, so the back-up on-device reader filled in" : ""));
           }).catch(function () {
             detailRereading = false;
             toast("The re-reading didn't finish — the recipe's words stay as they are");
@@ -2869,7 +2976,11 @@
           show("edit");
           els.scanArea.hidden = false;
           $("scan-status").style.display = "";
-          setScanState("Reading your recipe…", "Picking the words off the photo. This happens right on this phone — the photo isn't sent anywhere.", 0.02, false);
+          setScanState("Reading your recipe…", ocrMode() === "cloud"
+            ? (ocrApiKey()
+              ? "Picking the words off the photo with the cloud reader — the photo is sent to OCR.space to be read. If that fails, the on-device reader takes over."
+              : "Key needed for the cloud reader, so this photo will be read on-device instead. Add your free key to use the cloud — the link and key box are right by the Photo reader switch below.")
+            : "Picking the words off the photo with the original on-device reader. This happens right on this phone — the photo isn't sent anywhere.", 0.02, false);
 
           // The scan size stays as it is on purpose: the reader
           // testing behind v0.13 fed the app's own reader
@@ -2929,17 +3040,209 @@
           if (!els.title.value.trim() && parsed.title) els.title.value = parsed.title;
           sortEditing = null;
           renderSortPanel();
-          setScanState("Photo " + pendingPhotos.length + " added — its words went in below the earlier photos, in order", "Sort the lines below, then save — or add the next photo. " + CROP_REMINDER, 1, true);
+          var readNote = "";
+          if (lastReadVia === "cloud") readNote = "Read with the cloud reader. ";
+          else if (lastReadVia === "device-keyneeded") readNote = "Key needed for cloud, so this was read on-device instead. ";
+          else if (lastReadVia === "device-fallback") readNote = "The chosen reader couldn't read this photo, so the back-up on-device reader was used instead. ";
+          setScanState("Photo " + pendingPhotos.length + " added — its words went in below the earlier photos, in order", readNote + "Sort the lines below, then save — or add the next photo. " + CROP_REMINDER, 1, true);
+        }
+
+        /* ---------------- photo reader choice ---------------- */
+        // Which reader reads a photo, and the cook's own free
+        // OCR.space key, are saved on this phone under their own
+        // keys, apart from the recipes — like the Appearance
+        // choice — so switching readers never touches saved
+        // recipes, checks or Cook Week plans, and neither setting
+        // is part of a backup.
+        //
+        // The key rules: the personal key lives ONLY in this
+        // device's local storage under OCR_API_KEY_KEY. It is
+        // never baked into the app code, never in an exported
+        // copy (a new device starts with the key box empty),
+        // never in recipe-box-backup.json or any backup, share
+        // or copy text, and never logged. The one place it ever
+        // leaves the device is as the apikey header of a scan
+        // request to https://api.ocr.space/parse/image — the
+        // cloud service itself, which cannot work without it.
+        //
+        // Two readers, one choice (PaddleOCR was removed in
+        // v2.1; a "paddle" choice saved by v2.0 simply reads as
+        // the default below):
+        //   "cloud" — the OCR.space reader, first choice and
+        //     the default. It runs ONLY with the cook's own
+        //     personal key: there is no shared test key and no
+        //     silent fallback key. With no key saved, a scan is
+        //     read on-device instead and the scan status says
+        //     plainly "Key needed for cloud, so this was read
+        //     on-device instead" (see ocrReadPhoto below), and
+        //     a "Key needed" notice with the free-key link, a
+        //     key box and a "Use on-device instead" button
+        //     shows by every reader switch.
+        //   "device" — the original on-device Tesseract reader.
+        // Whenever the cloud can't read a photo — offline, an
+        // error or quota refusal, empty words, or a photo over
+        // the free 1 MB limit — the Tesseract reader steps in
+        // automatically (see ocrReadPhoto below).
+        var OCR_MODE_KEY = "recipe-box.ocr-mode.v1";
+        var OCR_API_KEY_KEY = "recipe-box.ocr-api-key.v1";
+        var OCR_CLOUD_LIMIT = 1024 * 1024; // the free tier's 1 MB photo limit
+        function ocrMode() {
+          try {
+            var m = localStorage.getItem(OCR_MODE_KEY);
+            return (m === "cloud" || m === "device") ? m : "cloud";
+          } catch (e) { return "cloud"; }
+        }
+        // Could any reading happen at all right now? The cloud
+        // needs nothing local (and without a key a cloud scan
+        // is read on-device instead); "On-device only" is
+        // Tesseract alone.
+        function readerAvailable() {
+          var mode = ocrMode();
+          if (mode === "cloud") return true;
+          return typeof Tesseract !== "undefined";
+        }
+        function ocrApiKey() {
+          try { return (localStorage.getItem(OCR_API_KEY_KEY) || "").trim(); }
+          catch (e) { return ""; }
+        }
+        function dataURLBytes(dataURL) {
+          var i = dataURL.indexOf(",");
+          var b64 = i >= 0 ? dataURL.slice(i + 1) : dataURL;
+          return Math.floor(b64.length * 3 / 4);
+        }
+        // How the most recent read was done: "cloud", "device",
+        // "device-fallback" when the cloud was tried first and
+        // the on-device Tesseract reader had to step in, or
+        // "device-keyneeded" when Cloud was chosen but no
+        // personal key is saved, so the photo was read
+        // on-device instead. The scan status reads this to say
+        // briefly — and plainly — which reader was used.
+        var lastReadVia = null;
+        var fallbackHappened = false; // any fallback in the current batch of reads
+        var keyNeededFallback = false; // any key-needed on-device read in the current batch
+
+        // Every reader's raw words are tidied the exact same
+        // way — the page's blank rows put back from the reader's
+        // line positions (Tesseract only; the cloud sends no
+        // positions, so its text passes through as-is), fraction
+        // garbles repaired — and the lines whose amounts the
+        // reader could not read for certain are worked out from
+        // the text BEFORE the repairs tidy it, exactly as scans
+        // have always been handled.
+        function finishRead(rawText, tsv) {
+          var preRepair = rebuildSpacing(rawText, tsv || "");
+          var scanFlags = [];
+          preRepair.split(/\r\n|\r|\n/).forEach(function (l, i) {
+            if (/\S/.test(l) && lineFractionNeedsCheck(l)) scanFlags.push(i);
+          });
+          return { text: repairProseFractions(repairTextFractions(preRepair)), flags: scanFlags };
+        }
+
+        // The free cloud reader: OCR.space reads the photo and
+        // sends back its words. It runs only with the cook's
+        // own personal key — with none saved it refuses here
+        // too, as a back-stop to the key-needed path in
+        // ocrReadPhoto, and no shared or test key is ever sent
+        // in its place. The key leaves the device only in this
+        // one request, as the apikey header to OCR.space.
+        // Anything that goes wrong — no connection, an HTTP or
+        // API error, a quota refusal, empty words, or a photo
+        // over the free 1 MB limit — rejects, and the caller
+        // falls back to the on-device reader automatically.
+        function cloudReadPhoto(imageDataURL) {
+          if (typeof fetch === "undefined") return Promise.reject(new Error("no fetch"));
+          if (!ocrApiKey()) return Promise.reject(new Error("key needed for the cloud reader"));
+          if (dataURLBytes(imageDataURL) > OCR_CLOUD_LIMIT) return Promise.reject(new Error("photo over the free 1 MB limit"));
+          var body = new URLSearchParams();
+          body.append("base64Image", imageDataURL);
+          body.append("language", "eng");
+          body.append("isOverlayRequired", "false");
+          body.append("detectOrientation", "true");
+          body.append("scale", "true");
+          var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+          var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, 90000) : null;
+          return fetch("https://api.ocr.space/parse/image", {
+            method: "POST",
+            headers: { apikey: ocrApiKey() },
+            body: body,
+            signal: ctrl ? ctrl.signal : undefined
+          }).then(function (res) {
+            if (timer) clearTimeout(timer);
+            if (!res.ok) throw new Error("cloud reader HTTP " + res.status);
+            return res.json();
+          }).then(function (json) {
+            if (!json || json.IsErroredOnProcessing) {
+              var msg = json && json.ErrorMessage ? String(json.ErrorMessage) : "cloud reader error";
+              throw new Error(msg);
+            }
+            var parts = [];
+            (json.ParsedResults || []).forEach(function (r) {
+              if (r && r.ParsedText) parts.push(r.ParsedText);
+            });
+            var text = parts.join("\n");
+            if (!text.trim()) throw new Error("cloud reader found no words");
+            return finishRead(text, "");
+          }).catch(function (err) {
+            if (timer) clearTimeout(timer);
+            throw err;
+          });
+        }
+
+
+        // The automatic back-up: the original on-device
+        // Tesseract reader, stepping in when the cloud can't
+        // read a photo.
+        function tesseractFallback(imageDataURL, onProgress) {
+          if (typeof Tesseract === "undefined") return Promise.reject(new Error("the back-up reader is not available"));
+          return tesseractReadPhoto(imageDataURL, onProgress).then(function (out) {
+            lastReadVia = "device-fallback";
+            fallbackHappened = true;
+            return out;
+          });
         }
 
         // Read one photo and hand back its words, tidied the
-        // same way every scan is tidied — the page's blank rows
-        // put back from the reader's line positions, fraction
-        // garbles repaired — plus the numbers of the lines whose
-        // amounts the reader could not read for certain. Shared
-        // by the first scan, later pages, and the re-read that
-        // follows a photo edit.
+        // same way every scan is tidied (see finishRead), plus
+        // the numbers of the lines whose amounts the reader
+        // could not read for certain. Shared by the first scan,
+        // later pages, and the re-read that follows a photo
+        // edit. The chosen reader is tried first — the cloud,
+        // or Tesseract alone — and on any failure the on-device
+        // Tesseract reader steps in automatically. One case is
+        // never silent: Cloud chosen with no personal key
+        // saved. The cloud is not tried at all (and no shared
+        // key is sent in its place); the photo is read
+        // on-device, lastReadVia is "device-keyneeded", and
+        // the scan status says plainly "Key needed for cloud,
+        // so this was read on-device instead".
         function ocrReadPhoto(imageDataURL, onProgress) {
+          lastReadVia = null;
+          var mode = ocrMode();
+          if (mode === "cloud") {
+            if (!ocrApiKey()) {
+              if (typeof Tesseract === "undefined") return Promise.reject(new Error("the on-device reader is not available"));
+              return tesseractReadPhoto(imageDataURL, onProgress).then(function (out) {
+                lastReadVia = "device-keyneeded";
+                keyNeededFallback = true;
+                return out;
+              });
+            }
+            return cloudReadPhoto(imageDataURL).then(function (out) {
+              lastReadVia = "cloud";
+              return out;
+            }).catch(function () {
+              return tesseractFallback(imageDataURL, onProgress);
+            });
+          }
+          return tesseractReadPhoto(imageDataURL, onProgress).then(function (out) {
+            lastReadVia = "device";
+            return out;
+          });
+        }
+
+        // The on-device reader (Tesseract), kept fully intact
+        // as the fallback and as the "On-device only" reader.
+        function tesseractReadPhoto(imageDataURL, onProgress) {
           var worker;
           return Tesseract.createWorker("eng", 1, {
             logger: function (m) { if (onProgress) onProgress(m); }
@@ -2955,16 +3258,7 @@
             if (worker) { try { worker.terminate(); } catch (e) {} }
             var rawText = (res && res.data && res.data.text) || "";
             var tsv = (res && res.data && res.data.tsv) || "";
-            var preRepair = rebuildSpacing(rawText, tsv);
-            // Which lines the reader could not read for certain
-            // is worked out from the text BEFORE the repairs tidy
-            // it — afterwards the garble is gone, and the doubt
-            // with it.
-            var scanFlags = [];
-            preRepair.split(/\r\n|\r|\n/).forEach(function (l, i) {
-              if (/\S/.test(l) && lineFractionNeedsCheck(l)) scanFlags.push(i);
-            });
-            return { text: repairProseFractions(repairTextFractions(preRepair)), flags: scanFlags };
+            return finishRead(rawText, tsv);
           }).catch(function (err) {
             if (worker) { try { worker.terminate(); } catch (e) {} }
             throw err;
@@ -2973,7 +3267,7 @@
 
         function runOCR(imageDataURL, append) {
           var readTitle = append ? "Reading photo " + Math.max(1, pendingPhotos.length) + " of up to " + MAX_PHOTOS + "…" : "Reading your recipe…";
-          if (typeof Tesseract === "undefined") {
+          if (!readerAvailable()) {
             setScanState("Automatic reading isn't available right now", "No problem — paste or type the recipe text in the box below the form, then tap “Rebuild the recipe from this text.”", 0, true);
             els.rawDetails.hidden = false;
             els.rawDetails.open = true;
@@ -3004,7 +3298,11 @@
               return;
             }
             fillForm(parseRecipeText(text));
-            setScanState("Done — here's what it read", "Use Sort the lines below — tap Edit on a line to fix anything the scan misread, and mark lines as Ingredient or Instruction — then save. If the recipe runs onto more pages, add them with the photo buttons below: they're read in order, from top to bottom.", 1, true);
+            var doneNote = "";
+            if (lastReadVia === "cloud") doneNote = "Read with the cloud reader. ";
+            else if (lastReadVia === "device-keyneeded") doneNote = "Key needed for cloud, so this was read on-device instead. ";
+            else if (lastReadVia === "device-fallback") doneNote = "The chosen reader couldn't read this photo, so the back-up on-device reader was used instead. ";
+            setScanState("Done — here's what it read", doneNote + "Use Sort the lines below — tap Edit on a line to fix anything the scan misread, and mark lines as Ingredient or Instruction — then save. If the recipe runs onto more pages, add them with the photo buttons below: they're read in order, from top to bottom.", 1, true);
             els.title.focus();
           }).catch(function () {
             setScanState("The reading didn't finish", "You can paste or type the recipe text in the box below the form, then tap “Rebuild the recipe from this text.”", 0, true);
@@ -3030,11 +3328,13 @@
         var formRereading = false;
         function rereadAllFormPhotos() {
           if (formRereading || !pendingPhotos.length) return;
-          if (typeof Tesseract === "undefined") {
+          if (!readerAvailable()) {
             toast("Photo edited — reading isn't available right now, so the words stay as they are");
             return;
           }
           formRereading = true;
+          fallbackHappened = false;
+          keyNeededFallback = false;
           var photos = pendingPhotos.slice();
           var keepTitle = els.title.value;
           els.scanArea.hidden = false;
@@ -3075,7 +3375,7 @@
             editMarks = { i: [], g: [] };
             fillForm(parseRecipeText(combined));
             if (keepTitle && keepTitle.trim()) els.title.value = keepTitle;
-            setScanState("Done — all " + photos.length + (photos.length === 1 ? " photo" : " photos") + " re-read in order", "The words below are every photo's words put together, photo 1 first. Sort the lines below, then save.", 1, true);
+            setScanState("Done — all " + photos.length + (photos.length === 1 ? " photo" : " photos") + " re-read in order", (keyNeededFallback ? "Key needed for cloud, so the photos were read on-device instead. " : fallbackHappened ? "The chosen reader couldn't read every photo, so the back-up on-device reader filled in. " : "") + "The words below are every photo's words put together, photo 1 first. Sort the lines below, then save.", 1, true);
           }).catch(function () {
             formRereading = false;
             setScanState("The re-reading didn't finish", "The photo was edited, but the words stay as they were.", 0, true);
@@ -3782,6 +4082,10 @@
           // option sits under the photo itself; with several,
           // every thumbnail in the strip carries its own.
           $("btn-detail-edit-photo").hidden = detailPhotos.length !== 1;
+          // The reader switch sits under the photos, above the
+          // words — and only where it can do something, on a
+          // recipe that has photos to re-read.
+          $("detail-reader-switch").hidden = detailPhotos.length === 0;
           els.dCategory.textContent = r.category || "Other";
           if (r.time) { els.dTime.textContent = r.time; els.dTime.hidden = false; }
           else els.dTime.hidden = true;
@@ -4755,6 +5059,101 @@
           }
         })();
 
+        /* ---------------- photo reader setting ---------------- */
+        // The Cloud first / On-device only choice
+        // and the key box. The choice appears in the form under
+        // the photos, and on a saved recipe's page under its
+        // photos — every switch is
+        // the same .reader-btn set, kept in step by
+        // applyOcrSettings, and saved on this phone only (see
+        // the reader choice section by the OCR run), so flipping
+        // to another reader is a single tap and loses nothing.
+        // Tapping a reader also puts it to work straight away:
+        // photos already in the form, or on the recipe page
+        // being viewed, are re-read at once with the new reader,
+        // in order, through the same re-read flows a photo edit
+        // uses; with no photos yet, the choice simply applies
+        // to the next scan — no reload, no save step.
+        function readerRereadCurrent() {
+          if ($("view-edit").classList.contains("active")) {
+            if (pendingPhotos.length) rereadAllFormPhotos();
+          } else if ($("view-detail").classList.contains("active") && viewingId) {
+            var r = recipes.find(function (x) { return x.id === viewingId; });
+            if (r && photosOf(r).length) rereadRecipePhotos(r);
+          }
+        }
+        function applyOcrSettings() {
+          var mode = ocrMode();
+          var btns = document.querySelectorAll(".reader-btn");
+          for (var i = 0; i < btns.length; i++) {
+            var on = btns[i].getAttribute("data-ocr-mode") === mode;
+            btns[i].classList.toggle("active", on);
+            btns[i].setAttribute("aria-pressed", on ? "true" : "false");
+          }
+          // The "Key needed" notice shows by the top reader
+          // switch exactly when Cloud is chosen and no
+          // personal key is saved on this device — never
+          // otherwise — so the state is impossible to miss
+          // and never a surprise mid-scan.
+          var needKey = mode === "cloud" && !ocrApiKey();
+          var kns = document.querySelectorAll(".key-needed");
+          for (var j = 0; j < kns.length; j++) kns[j].hidden = !needKey;
+        }
+        (function wireOcrSettings() {
+          var btns = document.querySelectorAll(".reader-btn");
+          for (var i = 0; i < btns.length; i++) {
+            (function (btn) {
+              btn.addEventListener("click", function () {
+                var mode = btn.getAttribute("data-ocr-mode");
+                var changed = ocrMode() !== mode;
+                try { localStorage.setItem(OCR_MODE_KEY, mode); } catch (e) {}
+                applyOcrSettings();
+                toast(mode === "cloud"
+                  ? (ocrApiKey()
+                    ? "Cloud reader first — the on-device reader still steps in if the cloud can't read a photo"
+                    : "Cloud reader — key needed: add your free key by the reader switch, or photos will be read on-device instead")
+                  : "On-device reader only — photos stay on this phone, like before");
+                if (changed) readerRereadCurrent();
+              });
+            })(btns[i]);
+          }
+          // The "Key needed" notices at the top carry their
+          // own key box and a "Use on-device instead" button,
+          // so the fix is one tap from wherever the notice is
+          // seen. Saving a key here writes the one device-only
+          // key store, and applyOcrSettings hides every
+          // notice at once.
+          var knSaves = document.querySelectorAll(".key-needed-save");
+          for (var s2 = 0; s2 < knSaves.length; s2++) {
+            (function (b) {
+              b.addEventListener("click", function () {
+                var box = b.closest ? b.closest(".key-needed") : null;
+                var inp = box ? box.querySelector(".key-needed-input") : null;
+                var v = inp ? (inp.value || "").trim() : "";
+                if (!v) {
+                  toast("Paste your free key first — the link in the notice opens the page that gives you one");
+                  return;
+                }
+                try { localStorage.setItem(OCR_API_KEY_KEY, v); } catch (e) {}
+                applyOcrSettings();
+                toast("Key saved on this device only");
+              });
+            })(knSaves[s2]);
+          }
+          var knDevs = document.querySelectorAll(".key-needed-device");
+          for (var d2 = 0; d2 < knDevs.length; d2++) {
+            (function (b) {
+              b.addEventListener("click", function () {
+                var changed = ocrMode() !== "device";
+                try { localStorage.setItem(OCR_MODE_KEY, "device"); } catch (e) {}
+                applyOcrSettings();
+                toast("On-device reader only — photos stay on this phone, like before");
+                if (changed) readerRereadCurrent();
+              });
+            })(knDevs[d2]);
+          }
+        })();
+
         /* ---------------- update log ---------------- */
         // Tapping the version at the bottom of the page opens
         // this log any time. It also opens on its own, once,
@@ -5324,6 +5723,7 @@
         loadWeek();
         els.appVersion.textContent = "v" + APP_VERSION + " · What's new";
         applyTheme();
+        applyOcrSettings();
         renderList();
         updateBackupStatus();
         prepareWhatsNewOnOpen();
