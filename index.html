@@ -12,7 +12,26 @@
     <meta name="apple-mobile-web-app-title" content="Recipe App" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="theme-color" content="#f6f2ec" />
+    <meta name="theme-color" id="meta-theme-color" content="#f6f2ec" />
+    <script>
+      // Set the theme before anything paints, so there is no flash of
+      // the wrong colours. The saved choice wins; with no saved choice
+      // (or "system" saved) the phone's own light/dark setting decides.
+      (function () {
+        try {
+          var p = localStorage.getItem("recipe-box.theme.v1");
+          if (p !== "light" && p !== "dark" && p !== "system") p = "system";
+          var dark = p === "dark" || (p === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+          document.documentElement.setAttribute("data-theme-pref", p);
+          var m = document.getElementById("meta-theme-color");
+          if (m) m.setAttribute("content", dark ? "#14100d" : "#f6f2ec");
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "light");
+          document.documentElement.setAttribute("data-theme-pref", "system");
+        }
+      })();
+    </script>
     <link rel="manifest" href="data:application/octet-stream;base64,eyJiYWNrZ3JvdW5kX2NvbG9yIjoiI2Y2ZjJlYyIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiaWNvbnMiOlt7InB1cnBvc2UiOiJhbnkiLCJzaXplcyI6IjE5MngxOTIiLCJzcmMiOiJpY29uLTE5Mi5wbmciLCJ0eXBlIjoiaW1hZ2UvcG5nIn0seyJwdXJwb3NlIjoiYW55Iiwic2l6ZXMiOiI1MTJ4NTEyIiwic3JjIjoiaWNvbi01MTIucG5nIiwidHlwZSI6ImltYWdlL3BuZyJ9LHsicHVycG9zZSI6Im1hc2thYmxlIiwic2l6ZXMiOiI1MTJ4NTEyIiwic3JjIjoiaWNvbi01MTIucG5nIiwidHlwZSI6ImltYWdlL3BuZyJ9XSwibmFtZSI6IlJlY2lwZSBBcHAiLCJzY29wZSI6Ii4uLyIsInNob3J0X25hbWUiOiJSZWNpcGUgQXBwIiwic3RhcnRfdXJsIjoiLi4vaW5kZXguaHRtbCIsInRoZW1lX2NvbG9yIjoiI2Y2ZjJlYyJ9" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,6 +39,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.5/dist/tesseract.min.js"></script>
     <style>
       :root {
+        color-scheme: light;
         --bg: #f6f2ec;
         --surface: #ffffff;
         --surface-2: #fdfaf5;
@@ -30,32 +50,41 @@
         --accent: #bc3f16;
         --accent-dark: #9c320e;
         --accent-soft: #fbe9df;
+        --on-accent: #ffffff;
         --herb: #3e6b34;
         --herb-soft: #e7efe1;
+        --on-herb: #ffffff;
         --gold: #c07f13;
         --danger: #b3261e;
+        --on-danger: #ffffff;
         --shadow: 0 10px 30px rgba(64, 38, 18, 0.10);
         --shadow-sm: 0 2px 10px rgba(64, 38, 18, 0.08);
       }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #16120f;
-          --surface: #221b16;
-          --surface-2: #1c1713;
-          --ink: #f4eadf;
-          --muted: #bfab99;
-          --faint: #8f7d6b;
-          --line: #3b2f26;
-          --accent: #ef7340;
-          --accent-dark: #ef7340;
-          --accent-soft: #3d2317;
-          --herb: #9cc184;
-          --herb-soft: #26331f;
-          --gold: #e0a83e;
-          --danger: #f08a80;
-          --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-          --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.35);
-        }
+      /* Dark is its own palette, not an inversion: warm charcoal
+         surfaces a step apart, brighter secondary text and borders
+         than a simple flip gives, and dark text on the bright
+         accent / herb / danger fills so buttons stay readable. */
+      :root[data-theme="dark"] {
+        color-scheme: dark;
+        --bg: #14100d;
+        --surface: #251d16;
+        --surface-2: #1d1712;
+        --ink: #f7efe2;
+        --muted: #d6c2a9;
+        --faint: #b6a28a;
+        --line: #584636;
+        --accent: #f98a54;
+        --accent-dark: #f98a54;
+        --accent-soft: #462a1b;
+        --on-accent: #271204;
+        --herb: #a9cd90;
+        --herb-soft: #2b3a21;
+        --on-herb: #17240f;
+        --gold: #ecb84e;
+        --danger: #f29990;
+        --on-danger: #2e0f0b;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.4);
       }
       * { box-sizing: border-box; }
       [hidden] { display: none !important; }
@@ -103,13 +132,13 @@
         transition: border-color .15s ease, transform .15s ease;
       }
       .cap-btn:active { transform: scale(0.98); }
-      .cap-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .cap-btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
       .cap-btn .cap-ico {
         width: 42px; height: 42px; border-radius: 12px;
         display: grid; place-items: center;
         background: var(--accent-soft); color: var(--accent);
       }
-      .cap-btn.primary .cap-ico { background: rgba(255,255,255,.18); color: #fff; }
+      .cap-btn.primary .cap-ico { background: rgba(255,255,255,.18); color: var(--on-accent); }
       .cap-btn strong { font-size: 17px; line-height: 1.25; }
       .cap-btn span { font-size: 13.5px; opacity: .82; line-height: 1.35; }
       .cap-btn svg { width: 24px; height: 24px; }
@@ -238,7 +267,7 @@
       .photo-toggle { display: flex; align-items: center; gap: 10px; font-size: 14.5px; }
       .photo-toggle input { width: 20px; height: 20px; accent-color: var(--accent); }
       .save-btn {
-        background: var(--accent); color: #fff; border: none;
+        background: var(--accent); color: var(--on-accent); border: none;
         border-radius: 14px; padding: 16px; font-size: 17px; font-weight: 700;
         box-shadow: var(--shadow-sm); width: 100%;
       }
@@ -297,7 +326,7 @@
       .ing-toggle {
         width: 34px; height: 34px; border-radius: 50%; flex: none; padding: 0;
         border: 2px solid var(--line); background: var(--surface-2);
-        display: grid; place-items: center; color: #fff; position: relative;
+        display: grid; place-items: center; color: var(--on-herb); position: relative;
       }
       .ing-toggle::before {
         content: ""; width: 9px; height: 9px; border-radius: 50%;
@@ -346,14 +375,48 @@
       .review-seg-btn.active-inst { background: var(--herb-soft); color: var(--herb); }
       .review-edit-btn { flex: none; margin-left: auto; background: var(--surface); border: 1.5px solid var(--line); border-radius: 999px; padding: 13px 22px; min-height: 52px; min-width: 88px; font-size: 16px; font-weight: 700; color: var(--accent); }
       .review-edit-input { flex: 1 1 100%; min-width: 0; border: 1.5px solid var(--accent); border-radius: 10px; background: var(--surface); padding: 12px 11px; font-size: 16px; outline: none; min-height: 48px; }
-      .review-save-btn { flex: none; background: var(--accent); border: 1.5px solid var(--accent); color: #fff; border-radius: 999px; padding: 12px 20px; min-height: 48px; font-size: 15px; font-weight: 700; }
+      .review-save-btn { flex: none; background: var(--accent); border: 1.5px solid var(--accent); color: var(--on-accent); border-radius: 999px; padding: 12px 20px; min-height: 48px; font-size: 15px; font-weight: 700; }
       .review-cancel-btn { flex: none; background: var(--surface); border: 1.5px solid var(--line); border-radius: 999px; padding: 12px 18px; min-height: 48px; font-size: 15px; font-weight: 700; }
       .fraction-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
       .fraction-bar-label { font-size: 13.5px; font-weight: 700; color: var(--muted); margin-right: 2px; }
       .fraction-chip { min-width: 52px; min-height: 52px; padding: 10px 12px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface); font-size: 22px; font-weight: 700; line-height: 1; color: var(--ink); }
       .fraction-chip:active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
       .review-fraction-bar { flex: 1 1 100%; margin-top: 4px; }
-      .app-version { text-align: center; color: var(--faint); font-size: 13px; margin: 36px 0 0; }
+      .app-version { text-align: center; margin: 14px 0 0; }
+      .version-btn {
+        background: none; border: none; min-height: 44px; padding: 10px 14px;
+        color: var(--faint); font-size: 13.5px; font-weight: 600;
+        text-decoration: underline; text-underline-offset: 3px;
+      }
+      .version-btn:active { color: var(--accent); }
+
+      /* ---------- Appearance (theme) ---------- */
+      .theme-row {
+        margin-top: 40px; display: flex; align-items: center; justify-content: center;
+        gap: 12px; flex-wrap: wrap;
+      }
+      .theme-label { font-size: 14px; font-weight: 700; color: var(--muted); }
+      .theme-seg {
+        display: inline-flex; border: 1.5px solid var(--line); border-radius: 999px;
+        overflow: hidden; background: var(--surface); box-shadow: var(--shadow-sm);
+      }
+      .theme-btn {
+        border: none; background: none; padding: 10px 16px; min-height: 44px;
+        font-size: 14px; font-weight: 700; color: var(--muted);
+      }
+      .theme-btn.active { background: var(--accent); color: var(--on-accent); }
+
+      /* ---------- Update log ---------- */
+      .update-log-list {
+        list-style: none; margin: 14px 0 0; padding: 0;
+        display: flex; flex-direction: column; gap: 9px;
+        max-height: 52vh; overflow-y: auto;
+      }
+      .update-log-list li { font-size: 14.5px; color: var(--muted); line-height: 1.45; }
+      .update-log-list li strong { color: var(--ink); font-weight: 700; margin-right: 4px; }
+      .update-log-list li:first-child {
+        background: var(--accent-soft); border-radius: 10px; padding: 9px 11px; margin: 0 -2px;
+      }
       .notes-box { background: var(--herb-soft); border-radius: 16px; padding: 14px 16px; white-space: pre-wrap; }
       .detail-actions { display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
       .action-btn {
@@ -362,9 +425,9 @@
         display: inline-flex; align-items: center; justify-content: center; gap: 7px;
       }
       .action-btn svg { width: 18px; height: 18px; }
-      .action-btn.main { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .action-btn.main { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
       .action-btn.danger { color: var(--danger); border-color: var(--line); }
-      .action-btn.danger.confirm { background: var(--danger); border-color: var(--danger); color: #fff; }
+      .action-btn.danger.confirm { background: var(--danger); border-color: var(--danger); color: var(--on-danger); }
 
       /* ---------- Photo viewer ---------- */
       .lightbox {
@@ -412,7 +475,7 @@
         font-weight: 700; font-size: 15.5px; color: var(--muted);
         box-shadow: var(--shadow-sm);
       }
-      .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .tab.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 
       /* ---------- Scale bar ---------- */
       .scale-bar { display: flex; align-items: center; gap: 10px 12px; margin-top: 20px; flex-wrap: wrap; }
@@ -423,7 +486,7 @@
         border: 1.5px solid var(--line); background: var(--surface);
         font-weight: 700; font-size: 15px; box-shadow: var(--shadow-sm);
       }
-      .scale-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .scale-btn.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
       .scale-note { color: var(--muted); font-size: 13px; flex-basis: 100%; }
 
       /* ---------- Cook Week ---------- */
@@ -440,6 +503,16 @@
       }
       .day-count { color: var(--muted); font-size: 13px; margin-left: auto; text-align: right; flex: none; }
       .day-empty { color: var(--faint); font-size: 14.5px; margin: 8px 0 0; }
+      .meal-slot { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+      .meal-slot:first-of-type { margin-top: 12px; }
+      .meal-head { display: flex; align-items: baseline; gap: 10px; }
+      .meal-head h4 {
+        font-family: "DM Serif Display", Georgia, serif; font-weight: 400;
+        font-size: 18px; margin: 0; color: var(--ink);
+      }
+      .meal-count { color: var(--muted); font-size: 12.5px; margin-left: auto; text-align: right; flex: none; }
+      .meal-empty { color: var(--faint); font-size: 14px; margin: 7px 0 0; }
+      .meal-slot .add-btn { margin-top: 10px; }
       .plan-row { padding: 9px 0; border-top: 1px solid var(--line); }
       .plan-main { display: flex; align-items: center; gap: 10px; }
       .plan-badge {
@@ -454,13 +527,13 @@
       }
       .plan-save {
         border: none; border-radius: 999px; padding: 8px 15px;
-        background: var(--accent); color: #fff; font-weight: 700; font-size: 14px;
+        background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 14px;
       }
       .plan-row:first-child { border-top: none; }
       .check-btn {
         width: 34px; height: 34px; border-radius: 50%; flex: none;
         border: 2px solid var(--line); background: var(--surface-2);
-        display: grid; place-items: center; color: #fff; padding: 0;
+        display: grid; place-items: center; color: var(--on-herb); padding: 0;
       }
       .check-btn svg { width: 18px; height: 18px; opacity: 0; }
       .plan-row.done .check-btn { background: var(--herb); border-color: var(--herb); }
@@ -523,7 +596,7 @@
       .picker-item .pi-cat { color: var(--muted); font-size: 13.5px; flex: none; }
       .picker-empty { color: var(--muted); margin: 8px 0; }
       .picker-done {
-        margin-top: 14px; background: var(--accent); color: #fff; border: none;
+        margin-top: 14px; background: var(--accent); color: var(--on-accent); border: none;
         border-radius: 14px; padding: 15px; font-size: 16px; font-weight: 700; width: 100%;
       }
 
@@ -549,7 +622,7 @@
         font-weight: 700; font-size: 15px;
       }
       .confirm-cancel { background: var(--surface-2); border: 1.5px solid var(--line); color: var(--ink); }
-      .confirm-yes { background: var(--accent); border: 1.5px solid var(--accent); color: #fff; }
+      .confirm-yes { background: var(--accent); border: 1.5px solid var(--accent); color: var(--on-accent); }
       .disclaimer-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
       .disclaimer-btns button {
         width: 100%; border-radius: 12px; padding: 13px 10px;
@@ -566,12 +639,11 @@
       .toast {
         position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom));
         transform: translate(-50%, 80px); z-index: 50;
-        background: #2b211a; color: #fdf6ec; padding: 13px 20px; border-radius: 999px;
+        background: var(--ink); color: var(--bg); padding: 13px 20px; border-radius: 999px;
         font-size: 15px; font-weight: 600; box-shadow: var(--shadow);
         opacity: 0; pointer-events: none; transition: transform .3s ease, opacity .3s ease;
         max-width: calc(100vw - 32px); text-align: center;
       }
-      @media (prefers-color-scheme: dark) { .toast { background: #f4eadf; color: #2b211a; } }
       .toast.show { transform: translate(-50%, 0); opacity: 1; }
 
       @media (max-width: 430px) {
@@ -585,7 +657,7 @@
         .tabs, .hero, .toolbar, .count-line, .backup-row, .back-btn, .photo-open,
         .detail-meta, .scale-bar, .detail-actions, .check-bar, .ing-toggle,
         .complete-banner, .confirm-overlay,
-        .toast, .lightbox, .picker, .app-version, #detail-notes-sec { display: none !important; }
+        .toast, .lightbox, .picker, .app-version, .theme-row, #detail-notes-sec { display: none !important; }
         .wrap { max-width: none; padding: 0; }
         .view-head { padding-top: 0; }
         .detail-sec h3::after { display: none; }
@@ -846,11 +918,19 @@
         <div class="view-head">
           <h2>Cook Week</h2>
         </div>
-        <p class="week-intro">Plan what you'll cook each day — add as many recipes to a day as you like. Tap the circle when you've made one (tap again to undo it), and tap a recipe's name — or its View recipe button — to open it. Use Portions and Save to size a recipe up or down for that day: the badge by its name shows the multiple, and the recipe opens already at that size.</p>
+        <p class="week-intro">Plan what you'll cook each day, meal by meal — every day has a Breakfast, a Lunch and a Supper slot, and you can add as many recipes to each slot as you like. So Tuesday could be eggs for breakfast, chicken at lunch and chili for supper. Tap the circle when you've made one (tap again to undo it), and tap a recipe's name — or its View recipe button — to open it. Use Portions and Save to size a recipe up or down for that meal: the badge by its name shows the multiple, and the recipe opens already at that size.</p>
         <div id="week-days"></div>
       </section>
 
-      <p class="app-version" id="app-version"></p>
+      <div class="theme-row">
+        <span class="theme-label" id="theme-label">Appearance</span>
+        <div class="theme-seg" role="group" aria-labelledby="theme-label">
+          <button type="button" class="theme-btn" data-theme-pref="system" aria-pressed="true">System</button>
+          <button type="button" class="theme-btn" data-theme-pref="light" aria-pressed="false">Light</button>
+          <button type="button" class="theme-btn" data-theme-pref="dark" aria-pressed="false">Dark</button>
+        </div>
+      </div>
+      <p class="app-version"><button type="button" class="version-btn" id="app-version" aria-haspopup="dialog">v1.2 · What's new</button></p>
       <p class="terms-foot"><button class="text-btn" id="btn-terms-link" type="button">Terms and Conditions</button></p>
     </div>
 
@@ -865,7 +945,7 @@
       <p class="lightbox-hint">Tap anywhere to close</p>
     </div>
 
-    <div class="picker" id="picker" hidden role="dialog" aria-modal="true" aria-label="Pick a recipe to add to a day">
+    <div class="picker" id="picker" hidden role="dialog" aria-modal="true" aria-label="Pick a recipe to add to a meal">
       <div class="picker-card">
         <div class="picker-head">
           <h3 id="picker-title">Add a recipe</h3>
@@ -873,7 +953,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
         </div>
-        <p class="picker-sub">Tap a recipe to add it — you can add as many as you want.</p>
+        <p class="picker-sub">Tap a recipe to add it to this meal — you can add as many as you want.</p>
         <div class="picker-list" id="picker-list"></div>
         <button class="picker-done" id="btn-picker-done" type="button">Done</button>
       </div>
@@ -933,6 +1013,32 @@
       </div>
     </div>
 
+    <div class="confirm-overlay" id="update-log" hidden role="dialog" aria-modal="true" aria-labelledby="update-log-title">
+      <div class="confirm-card">
+        <h3 id="update-log-title">What's new</h3>
+        <ul class="update-log-list">
+          <li><strong>v1.2</strong> Fixed: What's new now pops up after an update. Bug sweep too.</li>
+          <li><strong>v1.1</strong> What's new now pops up once after an update.</li>
+          <li><strong>v1.0</strong> Dark mode, an Appearance choice, and this update log.</li>
+          <li><strong>v0.19</strong> Cook Week got Breakfast, Lunch and Supper slots.</li>
+          <li><strong>v0.18</strong> New cookbook-and-whisk app icon.</li>
+          <li><strong>v0.17</strong> First built-in app icon.</li>
+          <li><strong>v0.16</strong> Home-screen name fixed to Recipe App.</li>
+          <li><strong>v0.15</strong> Tap-a-fraction chips and one-tap edits.</li>
+          <li><strong>v0.14</strong> Check each scanned line before saving.</li>
+          <li><strong>v0.13</strong> Clearer ½ and ¼ scan fixes, with amounts to check flagged.</li>
+          <li><strong>v0.12</strong> Fraction fixes in the instructions too.</li>
+          <li><strong>v0.11</strong> Type your own instructions by hand.</li>
+          <li><strong>v0.10</strong> Terms shown on first open.</li>
+          <li><strong>v0.9</strong> Scan tips before you photograph a recipe.</li>
+          <li><strong>v0.1–0.8</strong> The basics: scanning, saving, scaling, ticking off and backups.</li>
+        </ul>
+        <div class="confirm-btns">
+          <button class="confirm-yes" id="btn-update-log-close" type="button">Close</button>
+        </div>
+      </div>
+    </div>
+
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <script>
@@ -944,13 +1050,13 @@
         // it on every update: minor updates step 0.1 → 0.2 → 0.3 …,
         // a major update moves to the next whole number — 1.0,
         // 2.0, and so on.
-        var APP_VERSION = "0.18";
+        var APP_VERSION = "1.2";
         var recipes = [];
         var editingId = null;
         var viewingId = null;
         var viewScale = 1;
         var openScale = null; // scale a Cook Week entry asks the detail view to start at
-        var weekRef = null;   // { day, idx } of the Cook Week entry the detail view came from
+        var weekRef = null;   // { day, meal, idx } of the Cook Week entry the detail view came from
         var detailFrom = "home";
         var pendingPhoto = null; // data URL of the photo attached to the form
         var editMarks = { i: [], g: [] }; // line sorting staged in the edit form
@@ -992,7 +1098,7 @@
           scanDisclaimer: $("scan-disclaimer"),
           termsGate: $("terms-gate"), termsDeclined: $("terms-declined"),
           termsView: $("terms-view"), termsText: $("terms-text"), termsViewText: $("terms-view-text"),
-          appVersion: $("app-version"),
+          appVersion: $("app-version"), updateLog: $("update-log"),
           toast: $("toast")
         };
 
@@ -2643,7 +2749,8 @@
         // the cook can unmark it by hand in Cook Week.
         function markWeekEntryMade() {
           if (!weekRef || !weekPlan || !weekPlan[weekRef.day]) return;
-          var e = weekPlan[weekRef.day][weekRef.idx];
+          var slot = weekPlan[weekRef.day][weekRef.meal];
+          var e = slot ? slot[weekRef.idx] : null;
           if (e && e.id === viewingId && !e.done) {
             e.done = true;
             saveWeek();
@@ -2677,8 +2784,8 @@
               // Opened from a Cook Week entry? The entry's saved
               // multiple follows the new size automatically, so
               // the badge outside is always the size it opens at.
-              if (weekRef && weekPlan && weekPlan[weekRef.day]) {
-                var we = weekPlan[weekRef.day][weekRef.idx];
+              if (weekRef && weekPlan && weekPlan[weekRef.day] && weekPlan[weekRef.day][weekRef.meal]) {
+                var we = weekPlan[weekRef.day][weekRef.meal][weekRef.idx];
                 if (we && we.id === viewingId && we.scale !== viewScale) {
                   we.scale = viewScale;
                   saveWeek();
@@ -3449,8 +3556,12 @@
           if (lineMarks[goneId]) { delete lineMarks[goneId]; saveMarks(); }
           if (amountFlags[goneId]) { delete amountFlags[goneId]; saveAmountFlags(); }
           if (weekPlan) {
-            weekPlan = weekPlan.map(function (day) {
-              return day.filter(function (e) { return e.id !== goneId; });
+            weekPlan.forEach(function (day) {
+              MEALS.forEach(function (m) {
+                if (day && Array.isArray(day[m.key])) {
+                  day[m.key] = day[m.key].filter(function (e) { return e.id !== goneId; });
+                }
+              });
             });
             saveWeek();
           }
@@ -3618,6 +3729,9 @@
         $("btn-terms-accept").addEventListener("click", function () {
           saveTermsAcceptance();
           hideTermsLayer(els.termsGate);
+          // If this open brought a new version, the What's new
+          // log was held back behind the Terms — show it now.
+          maybeShowWhatsNew();
         });
         $("btn-terms-decline").addEventListener("click", function () {
           els.termsGate.hidden = true;
@@ -3636,6 +3750,144 @@
         });
         els.termsView.addEventListener("click", function (ev) {
           if (ev.target === els.termsView) hideTermsLayer(els.termsView);
+        });
+
+        /* ---------------- appearance (theme) ---------------- */
+        // The Appearance choice — System, Light or Dark — is saved
+        // on this phone under its own key, apart from the recipes,
+        // so it never touches saved recipes, checks or Cook Week
+        // plans, and it is not part of a backup. With no choice
+        // saved, and whenever System is picked, the phone's own
+        // light/dark setting decides; the head script has already
+        // applied that before first paint, and applyTheme here
+        // keeps it in step if the phone's setting changes.
+        var THEME_KEY = "recipe-box.theme.v1";
+        function themePref() {
+          try {
+            var p = localStorage.getItem(THEME_KEY);
+            return (p === "light" || p === "dark" || p === "system") ? p : "system";
+          } catch (e) { return "system"; }
+        }
+        function systemPrefersDark() {
+          return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        }
+        function applyTheme() {
+          var pref = themePref();
+          var dark = pref === "dark" || (pref === "system" && systemPrefersDark());
+          document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+          document.documentElement.setAttribute("data-theme-pref", pref);
+          var meta = document.getElementById("meta-theme-color");
+          if (meta) meta.setAttribute("content", dark ? "#14100d" : "#f6f2ec");
+          var btns = document.querySelectorAll(".theme-btn");
+          for (var i = 0; i < btns.length; i++) {
+            var on = btns[i].getAttribute("data-theme-pref") === pref;
+            btns[i].classList.toggle("active", on);
+            btns[i].setAttribute("aria-pressed", on ? "true" : "false");
+          }
+        }
+        function setThemePref(p) {
+          try { localStorage.setItem(THEME_KEY, p); } catch (e) {}
+          applyTheme();
+        }
+        (function wireThemeButtons() {
+          var btns = document.querySelectorAll(".theme-btn");
+          for (var i = 0; i < btns.length; i++) {
+            (function (btn) {
+              btn.addEventListener("click", function () {
+                setThemePref(btn.getAttribute("data-theme-pref"));
+              });
+            })(btns[i]);
+          }
+          if (window.matchMedia) {
+            var mq = window.matchMedia("(prefers-color-scheme: dark)");
+            var onChange = function () { if (themePref() === "system") applyTheme(); };
+            if (mq.addEventListener) mq.addEventListener("change", onChange);
+            else if (mq.addListener) mq.addListener(onChange);
+          }
+        })();
+
+        /* ---------------- update log ---------------- */
+        // Tapping the version at the bottom of the page opens
+        // this log any time. It also opens on its own, once,
+        // when the app has been updated since the last open:
+        // the last version the cook has seen is saved on this
+        // phone under its own key, apart from the recipes, so
+        // it never touches saved recipes, checks or Cook Week
+        // plans, and it is not part of a backup. On a first
+        // install there is no previous version saved, so
+        // nothing pops up — the current version is simply
+        // remembered for next time. The log never blocks the
+        // app for good: its Close button (and tapping outside
+        // it) always dismisses it.
+        var SEEN_VERSION_KEY = "recipe-box.seen-version.v1";
+        var whatsNewPending = false;
+        function seenVersion() {
+          try { return localStorage.getItem(SEEN_VERSION_KEY); } catch (e) { return null; }
+        }
+        function saveSeenVersion() {
+          try { localStorage.setItem(SEEN_VERSION_KEY, APP_VERSION); } catch (e) {}
+        }
+        // Versions before 1.1 never wrote a seen-version record,
+        // so "no record" on its own cannot tell a first install
+        // from an update — v1.1 read it as a first install and
+        // silently saved itself as seen, which is why the log
+        // never popped for anyone updating from 1.0 or earlier.
+        // Signs the app was already in use before this record
+        // existed — terms accepted, recipes saved, a Cook Week
+        // plan, ticks, a backup stamp or a theme choice — mean
+        // this open IS an update, and the log should pop.
+        function hasEarlierUse() {
+          try {
+            if (localStorage.getItem(TERMS_KEY) === "accepted") return true;
+            var raw = localStorage.getItem(STORE_KEY);
+            if (raw) {
+              var arr = JSON.parse(raw);
+              if (Array.isArray(arr) && arr.length) return true;
+            }
+            var keys = [
+              "recipe-box.week.v1", "recipe-box.checks.v1",
+              "recipe-box.marks.v1", "recipe-box.amount-flags.v1",
+              "recipe-box.backup.v1", "recipe-box.theme.v1",
+              "recipe-box.scan-disclaimer.v1"
+            ];
+            for (var i = 0; i < keys.length; i++) {
+              if (localStorage.getItem(keys[i])) return true;
+            }
+          } catch (e) {}
+          return false;
+        }
+        function prepareWhatsNewOnOpen() {
+          var seen = seenVersion();
+          if (seen === APP_VERSION) { whatsNewPending = false; return; }
+          if (seen) { whatsNewPending = true; return; }
+          // No version recorded: an update from before the
+          // record existed if the app was already in use;
+          // a true first install only when nothing is saved.
+          if (hasEarlierUse()) { whatsNewPending = true; return; }
+          whatsNewPending = false;
+          saveSeenVersion();
+        }
+        function maybeShowWhatsNew() {
+          if (!whatsNewPending) return;
+          whatsNewPending = false;
+          // Mark this version as seen as soon as it is shown,
+          // so the log pops up once for this update and never
+          // again on later opens.
+          saveSeenVersion();
+          openUpdateLog();
+        }
+        function openUpdateLog() {
+          els.updateLog.hidden = false;
+          document.body.style.overflow = "hidden";
+        }
+        function closeUpdateLog() {
+          els.updateLog.hidden = true;
+          document.body.style.overflow = "";
+        }
+        els.appVersion.addEventListener("click", openUpdateLog);
+        $("btn-update-log-close").addEventListener("click", closeUpdateLog);
+        els.updateLog.addEventListener("click", function (ev) {
+          if (ev.target === els.updateLog) closeUpdateLog();
         });
 
         $("btn-camera").addEventListener("click", function () { requestPhoto("image/*", "environment"); });
@@ -3775,57 +4027,222 @@
 
         /* ---------------- cook week ---------------- */
         // The week's plan lives in its own store on this phone:
-        // seven day lists (Monday first), each holding any number
-        // of { recipe id, done, portions multiple } entries. It is
-        // saved on every change, so the plan, its ticks, and its
-        // portion sizes are still here after the app is closed
-        // and reopened.
+        // seven days (Monday first), and each day has three meal
+        // slots — Breakfast, Lunch and Supper. Every slot holds
+        // any number of { recipe id, done, portions multiple }
+        // entries of its own. It is saved on every change, so the
+        // plan, its ticks, and its portion sizes are still here
+        // after the app is closed and reopened.
         var WEEK_KEY = "recipe-box.week.v1";
         var DAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        var MEALS = [
+          { key: "breakfast", label: "Breakfast" },
+          { key: "lunch", label: "Lunch" },
+          { key: "supper", label: "Supper" }
+        ];
         var weekPlan = null;
         var pickerDay = null;
-        function emptyWeek() { return [[], [], [], [], [], [], []]; }
+        var pickerMeal = null;
+        function emptyDayPlan() { return { breakfast: [], lunch: [], supper: [] }; }
+        function emptyWeek() {
+          var w = [];
+          for (var i = 0; i < 7; i++) w.push(emptyDayPlan());
+          return w;
+        }
+        function isMealKey(k) {
+          return MEALS.some(function (m) { return m.key === k; });
+        }
+        function mealLabel(key) {
+          var m = MEALS.find(function (x) { return x.key === key; });
+          return m ? m.label : "Supper";
+        }
+        function normalizeWeekEntry(e) {
+          // Each entry carries its own portion multiple
+          // (½×, 1×, 2×, 3×); entries saved before that
+          // existed — or with anything unexpected — are 1×.
+          return { id: e.id, done: !!e.done, scale: [0.5, 1, 2, 3].indexOf(e.scale) !== -1 ? e.scale : 1 };
+        }
+        // Where a recipe planned before meal slots existed
+        // belongs now: a Breakfast-category recipe goes to
+        // Breakfast, and everything else goes to Supper — the
+        // main meal the old single list was mostly planning.
+        // Nothing planned before is ever dropped in the move:
+        // its entry, made tick and portions all carry over.
+        function sensibleMealFor(id) {
+          var r = recipes.find(function (x) { return x.id === id; });
+          if (r && r.category === "Breakfast") return "breakfast";
+          return "supper";
+        }
         function loadWeek() {
           weekPlan = emptyWeek();
+          var migrated = false;
           try {
             var raw = localStorage.getItem(WEEK_KEY);
             if (!raw) return;
             var data = JSON.parse(raw);
             if (!Array.isArray(data)) return;
             for (var d = 0; d < 7; d++) {
-              if (!Array.isArray(data[d])) continue;
-              weekPlan[d] = data[d].filter(function (e) { return e && typeof e.id === "string"; })
-                .map(function (e) {
-                  // Each entry carries its own portion multiple
-                  // (½×, 1×, 2×, 3×); entries saved before that
-                  // existed — or with anything unexpected — are 1×.
-                  return { id: e.id, done: !!e.done, scale: [0.5, 1, 2, 3].indexOf(e.scale) !== -1 ? e.scale : 1 };
+              var src = data[d];
+              if (!src) continue;
+              if (Array.isArray(src)) {
+                // Old shape: one flat list for the whole day.
+                // Move every entry into its sensible meal slot —
+                // or the slot the entry itself names, if a later
+                // old save ever wrote one — and keep it.
+                migrated = true;
+                src.filter(function (e) { return e && typeof e.id === "string"; })
+                  .forEach(function (e) {
+                    var key = isMealKey(e.meal) ? e.meal : sensibleMealFor(e.id);
+                    weekPlan[d][key].push(normalizeWeekEntry(e));
+                  });
+              } else if (typeof src === "object") {
+                // New shape: one list per meal slot.
+                MEALS.forEach(function (m) {
+                  if (!Array.isArray(src[m.key])) return;
+                  weekPlan[d][m.key] = src[m.key]
+                    .filter(function (e) { return e && typeof e.id === "string"; })
+                    .map(normalizeWeekEntry);
                 });
+              }
             }
-          } catch (e) { weekPlan = emptyWeek(); }
+          } catch (e) { weekPlan = emptyWeek(); migrated = false; }
+          // Keep the migrated shape, so the old flat lists are
+          // only ever converted once.
+          if (migrated) saveWeek();
         }
         function saveWeek() {
           try { localStorage.setItem(WEEK_KEY, JSON.stringify(weekPlan)); } catch (e) {}
         }
+        function allDayEntries(dayPlan) {
+          var out = [];
+          MEALS.forEach(function (m) {
+            if (dayPlan && Array.isArray(dayPlan[m.key])) out = out.concat(dayPlan[m.key]);
+          });
+          return out;
+        }
         function pruneWeek() {
           // Entries pointing at a recipe that is no longer in the
-          // box are dropped, so a day never shows a ghost.
+          // box are dropped, so no meal slot ever shows a ghost.
           var changed = false;
           for (var d = 0; d < 7; d++) {
-            var before = weekPlan[d].length;
-            weekPlan[d] = weekPlan[d].filter(function (e) {
-              return recipes.some(function (r) { return r.id === e.id; });
+            MEALS.forEach(function (m) {
+              var before = weekPlan[d][m.key].length;
+              weekPlan[d][m.key] = weekPlan[d][m.key].filter(function (e) {
+                return recipes.some(function (r) { return r.id === e.id; });
+              });
+              if (weekPlan[d][m.key].length !== before) changed = true;
             });
-            if (weekPlan[d].length !== before) changed = true;
           }
           if (changed) saveWeek();
+        }
+        function buildPlanRow(entry, idx, dayIdx, mealKey) {
+          var name = DAY_NAMES[dayIdx];
+          var label = mealLabel(mealKey);
+          var r = recipes.find(function (x) { return x.id === entry.id; });
+          if (!r) return null;
+          var row = document.createElement("div");
+          row.className = "plan-row" + (entry.done ? " done" : "");
+          var main = document.createElement("div");
+          main.className = "plan-main";
+          var check = document.createElement("button");
+          check.type = "button";
+          check.className = "check-btn";
+          check.setAttribute("aria-pressed", entry.done ? "true" : "false");
+          check.setAttribute("aria-label", entry.done
+            ? "Mark " + (r.title || "recipe") + " as not made yet"
+            : "Mark " + (r.title || "recipe") + " as made");
+          check.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+          check.addEventListener("click", function () {
+            entry.done = !entry.done;
+            saveWeek();
+            renderWeek();
+          });
+          var open = document.createElement("button");
+          open.type = "button";
+          open.className = "plan-open";
+          open.textContent = r.title || "Untitled recipe";
+          open.addEventListener("click", function () {
+            detailFrom = "week";
+            weekRef = { day: dayIdx, meal: mealKey, idx: idx };
+            openScale = entry.scale || 1;
+            openDetail(r.id);
+          });
+          var rm = document.createElement("button");
+          rm.type = "button";
+          rm.className = "plan-remove";
+          rm.setAttribute("aria-label", "Remove " + (r.title || "recipe") + " from " + name + " " + label);
+          rm.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+          rm.addEventListener("click", function () {
+            weekPlan[dayIdx][mealKey].splice(idx, 1);
+            saveWeek();
+            renderWeek();
+          });
+          var badge = document.createElement("span");
+          badge.className = "plan-badge";
+          badge.textContent = scaleName(entry.scale || 1);
+          badge.setAttribute("aria-label", "Portions: " + scaleName(entry.scale || 1));
+          // An explicit way into the recipe, alongside tapping
+          // its name: opens it at this entry's saved multiple.
+          var viewBtn = document.createElement("button");
+          viewBtn.type = "button";
+          viewBtn.className = "plan-view";
+          viewBtn.textContent = "View recipe";
+          viewBtn.setAttribute("aria-label", "View recipe: " + (r.title || "Untitled recipe"));
+          viewBtn.addEventListener("click", function () {
+            detailFrom = "week";
+            weekRef = { day: dayIdx, meal: mealKey, idx: idx };
+            openScale = entry.scale || 1;
+            openDetail(r.id);
+          });
+          main.appendChild(check);
+          main.appendChild(open);
+          main.appendChild(badge);
+          main.appendChild(viewBtn);
+          main.appendChild(rm);
+          row.appendChild(main);
+          // Portions for this entry: pick a multiple, press
+          // Save, and it stays saved for this entry alone —
+          // the same recipe in another meal or on another day
+          // keeps its own size, and opening this entry starts
+          // at this size.
+          var scaleRow = document.createElement("div");
+          scaleRow.className = "plan-scale";
+          var sLabel = document.createElement("span");
+          sLabel.className = "plan-scale-label";
+          sLabel.textContent = "Portions";
+          var sel = document.createElement("select");
+          sel.setAttribute("aria-label", "Portions for " + (r.title || "recipe") + " on " + name + " at " + label);
+          [0.5, 1, 2, 3].forEach(function (f) {
+            var opt = document.createElement("option");
+            opt.value = String(f);
+            opt.textContent = scaleName(f);
+            sel.appendChild(opt);
+          });
+          sel.value = String(entry.scale || 1);
+          var saveScale = document.createElement("button");
+          saveScale.type = "button";
+          saveScale.className = "plan-save";
+          saveScale.textContent = "Save";
+          saveScale.addEventListener("click", function () {
+            var f = parseFloat(sel.value) || 1;
+            entry.scale = f;
+            saveWeek();
+            renderWeek();
+            toast("Portions saved — " + (r.title || "Recipe") + " on " + name + " at " + label + " is " + scaleName(f));
+          });
+          scaleRow.appendChild(sLabel);
+          scaleRow.appendChild(sel);
+          scaleRow.appendChild(saveScale);
+          row.appendChild(scaleRow);
+          return row;
         }
         function renderWeek() {
           if (!weekPlan) loadWeek();
           pruneWeek();
           els.weekDays.innerHTML = "";
           DAY_NAMES.forEach(function (name, d) {
-            var entries = weekPlan[d];
+            var dayPlan = weekPlan[d];
+            var entries = allDayEntries(dayPlan);
             var card = document.createElement("div");
             card.className = "day-card";
             var head = document.createElement("div");
@@ -3846,125 +4263,57 @@
             head.appendChild(h);
             head.appendChild(count);
             card.appendChild(head);
-            if (!entries.length) {
-              var p = document.createElement("p");
-              p.className = "day-empty";
-              p.textContent = "No recipes yet — add one below.";
-              card.appendChild(p);
-            } else {
-              var list = document.createElement("div");
-              entries.forEach(function (entry, i) {
-                var r = recipes.find(function (x) { return x.id === entry.id; });
-                if (!r) return;
-                var row = document.createElement("div");
-                row.className = "plan-row" + (entry.done ? " done" : "");
-                var main = document.createElement("div");
-                main.className = "plan-main";
-                var check = document.createElement("button");
-                check.type = "button";
-                check.className = "check-btn";
-                check.setAttribute("aria-pressed", entry.done ? "true" : "false");
-                check.setAttribute("aria-label", entry.done
-                  ? "Mark " + (r.title || "recipe") + " as not made yet"
-                  : "Mark " + (r.title || "recipe") + " as made");
-                check.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
-                check.addEventListener("click", function () {
-                  entry.done = !entry.done;
-                  saveWeek();
-                  renderWeek();
+            MEALS.forEach(function (meal) {
+              var mealEntries = dayPlan[meal.key];
+              var slot = document.createElement("div");
+              slot.className = "meal-slot";
+              slot.setAttribute("data-meal", meal.key);
+              slot.setAttribute("aria-label", name + " " + meal.label);
+              var mHead = document.createElement("div");
+              mHead.className = "meal-head";
+              var mh = document.createElement("h4");
+              mh.textContent = meal.label;
+              var mCount = document.createElement("span");
+              mCount.className = "meal-count";
+              if (mealEntries.length) {
+                var mDone = mealEntries.filter(function (e) { return e.done; }).length;
+                var mParts = [];
+                if (mealEntries.length - mDone) mParts.push((mealEntries.length - mDone) + " to make");
+                if (mDone) mParts.push(mDone + " done");
+                mCount.textContent = mParts.join(" · ");
+              }
+              mHead.appendChild(mh);
+              mHead.appendChild(mCount);
+              slot.appendChild(mHead);
+              if (!mealEntries.length) {
+                var p = document.createElement("p");
+                p.className = "meal-empty";
+                p.textContent = "Nothing for " + meal.label.toLowerCase() + " yet — add one below.";
+                slot.appendChild(p);
+              } else {
+                var list = document.createElement("div");
+                mealEntries.forEach(function (entry, i) {
+                  var row = buildPlanRow(entry, i, d, meal.key);
+                  if (row) list.appendChild(row);
                 });
-                var open = document.createElement("button");
-                open.type = "button";
-                open.className = "plan-open";
-                open.textContent = r.title || "Untitled recipe";
-                open.addEventListener("click", function () {
-                  detailFrom = "week";
-                  weekRef = { day: d, idx: i };
-                  openScale = entry.scale || 1;
-                  openDetail(r.id);
-                });
-                var rm = document.createElement("button");
-                rm.type = "button";
-                rm.className = "plan-remove";
-                rm.setAttribute("aria-label", "Remove " + (r.title || "recipe") + " from " + name);
-                rm.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
-                rm.addEventListener("click", function () {
-                  weekPlan[d].splice(i, 1);
-                  saveWeek();
-                  renderWeek();
-                });
-                var badge = document.createElement("span");
-                badge.className = "plan-badge";
-                badge.textContent = scaleName(entry.scale || 1);
-                badge.setAttribute("aria-label", "Portions: " + scaleName(entry.scale || 1));
-                // An explicit way into the recipe, alongside tapping
-                // its name: opens it at this entry's saved multiple.
-                var viewBtn = document.createElement("button");
-                viewBtn.type = "button";
-                viewBtn.className = "plan-view";
-                viewBtn.textContent = "View recipe";
-                viewBtn.setAttribute("aria-label", "View recipe: " + (r.title || "Untitled recipe"));
-                viewBtn.addEventListener("click", function () {
-                  detailFrom = "week";
-                  weekRef = { day: d, idx: i };
-                  openScale = entry.scale || 1;
-                  openDetail(r.id);
-                });
-                main.appendChild(check);
-                main.appendChild(open);
-                main.appendChild(badge);
-                main.appendChild(viewBtn);
-                main.appendChild(rm);
-                row.appendChild(main);
-                // Portions for this entry: pick a multiple, press
-                // Save, and it stays saved for this entry alone —
-                // the same recipe on another day keeps its own
-                // size, and opening this entry starts at this size.
-                var scaleRow = document.createElement("div");
-                scaleRow.className = "plan-scale";
-                var sLabel = document.createElement("span");
-                sLabel.className = "plan-scale-label";
-                sLabel.textContent = "Portions";
-                var sel = document.createElement("select");
-                sel.setAttribute("aria-label", "Portions for " + (r.title || "recipe") + " on " + name);
-                [0.5, 1, 2, 3].forEach(function (f) {
-                  var opt = document.createElement("option");
-                  opt.value = String(f);
-                  opt.textContent = scaleName(f);
-                  sel.appendChild(opt);
-                });
-                sel.value = String(entry.scale || 1);
-                var saveScale = document.createElement("button");
-                saveScale.type = "button";
-                saveScale.className = "plan-save";
-                saveScale.textContent = "Save";
-                saveScale.addEventListener("click", function () {
-                  var f = parseFloat(sel.value) || 1;
-                  entry.scale = f;
-                  saveWeek();
-                  renderWeek();
-                  toast("Portions saved — " + (r.title || "Recipe") + " on " + name + " is " + scaleName(f));
-                });
-                scaleRow.appendChild(sLabel);
-                scaleRow.appendChild(sel);
-                scaleRow.appendChild(saveScale);
-                row.appendChild(scaleRow);
-                list.appendChild(row);
-              });
-              card.appendChild(list);
-            }
-            var add = document.createElement("button");
-            add.type = "button";
-            add.className = "add-btn";
-            add.textContent = "+ Add a recipe";
-            add.addEventListener("click", function () { openPicker(d); });
-            card.appendChild(add);
+                slot.appendChild(list);
+              }
+              var add = document.createElement("button");
+              add.type = "button";
+              add.className = "add-btn";
+              add.textContent = "+ Add a recipe to " + meal.label;
+              add.setAttribute("aria-label", "Add a recipe to " + name + " " + meal.label);
+              add.addEventListener("click", function () { openPicker(d, meal.key); });
+              slot.appendChild(add);
+              card.appendChild(slot);
+            });
             els.weekDays.appendChild(card);
           });
         }
-        function openPicker(day) {
+        function openPicker(day, meal) {
           pickerDay = day;
-          els.pickerTitle.textContent = "Add to " + DAY_NAMES[day];
+          pickerMeal = isMealKey(meal) ? meal : "supper";
+          els.pickerTitle.textContent = "Add to " + DAY_NAMES[day] + " · " + mealLabel(pickerMeal);
           els.pickerList.innerHTML = "";
           if (!recipes.length) {
             var p = document.createElement("p");
@@ -3990,10 +4339,10 @@
             b.appendChild(nm);
             b.appendChild(cat);
             b.addEventListener("click", function () {
-              weekPlan[pickerDay].push({ id: r.id, done: false, scale: 1 });
+              weekPlan[pickerDay][pickerMeal].push({ id: r.id, done: false, scale: 1 });
               saveWeek();
               renderWeek();
-              toast((r.title || "Recipe") + " added to " + DAY_NAMES[pickerDay]);
+              toast((r.title || "Recipe") + " added to " + DAY_NAMES[pickerDay] + " " + mealLabel(pickerMeal));
             });
             els.pickerList.appendChild(b);
           });
@@ -4016,10 +4365,18 @@
         loadMarks();
         loadAmountFlags();
         loadWeek();
-        els.appVersion.textContent = "v" + APP_VERSION;
+        els.appVersion.textContent = "v" + APP_VERSION + " · What's new";
+        applyTheme();
         renderList();
         updateBackupStatus();
-        if (!termsAccepted()) showTermsLayer(els.termsGate);
+        prepareWhatsNewOnOpen();
+        if (!termsAccepted()) {
+          // Terms come first; a pending What's new shows right
+          // after they are accepted (see the Accept handler).
+          showTermsLayer(els.termsGate);
+        } else {
+          maybeShowWhatsNew();
+        }
       })();
     </script>
   </body>
