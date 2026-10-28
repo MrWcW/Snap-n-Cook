@@ -537,11 +537,16 @@
       .pe-stage-wrap {
         flex: 1; min-height: 0;
         display: flex; align-items: center; justify-content: center;
-        padding: 8px 18px;
+        /* Generous padding on purpose: the trim handles stick
+           out past the photo's corners, and they must stay
+           inside this padded area — clear of the title bar
+           above and the controls below — so words and buttons
+           never sit on top of a handle and eat its touches. */
+        padding: 30px 28px;
       }
       .pe-stage { position: relative; line-height: 0; }
       .pe-img {
-        display: block; max-width: calc(100vw - 36px); max-height: 42vh;
+        display: block; max-width: calc(100vw - 84px); max-height: 42vh;
         border-radius: 6px; -webkit-user-drag: none; user-select: none;
       }
       .pe-crop {
@@ -563,7 +568,7 @@
         position: relative; z-index: 2;
       }
       .pe-handle {
-        position: absolute; width: 36px; height: 36px; margin: -18px 0 0 -18px;
+        position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px;
         border-radius: 50%; border: 3px solid #ffffff;
         background: #ff7a26; touch-action: none; padding: 0; opacity: 1;
         box-shadow: 0 3px 12px rgba(0, 0, 0, 0.6), 0 0 0 4px rgba(255, 150, 60, 0.4), 0 0 20px rgba(255, 122, 38, 0.95);
@@ -573,8 +578,8 @@
       .pe-handle[data-h="sw"] { left: 0; top: 100%; cursor: nesw-resize; }
       .pe-handle[data-h="se"] { left: 100%; top: 100%; cursor: nwse-resize; }
       .pe-hint {
-        margin: 0; text-align: center; color: #fdf6ec;
-        font-size: 13.5px; padding: 2px 20px 8px;
+        margin: 0 0 6px; text-align: left; color: #fdf6ec;
+        font-size: 13.5px; padding: 0;
       }
       .pe-controls {
         padding: 10px 18px calc(14px + env(safe-area-inset-bottom));
@@ -627,7 +632,6 @@
         box-shadow: 0 0 0 3px rgba(255, 150, 60, 0.4), 0 0 18px rgba(255, 122, 38, 0.9);
         border-radius: 999px; padding: 3px 7px;
       }
-      .pe-slider-note { margin: 2px 0 0 98px; color: #eadbc6; font-size: 13px; }
       .pe-btns { display: flex; gap: 10px; margin-top: 14px; }
       .pe-btns button {
         flex: 1; border-radius: 12px; padding: 14px 10px; min-height: 54px;
@@ -1145,7 +1149,7 @@
           <button type="button" class="theme-btn" data-theme-pref="dark" aria-pressed="false">Dark</button>
         </div>
       </div>
-      <p class="app-version"><button type="button" class="version-btn" id="app-version" aria-haspopup="dialog">v1.10 · What's new</button></p>
+      <p class="app-version"><button type="button" class="version-btn" id="app-version" aria-haspopup="dialog">v1.11 · What's new</button></p>
       <p class="terms-foot"><button class="text-btn" id="btn-terms-link" type="button">Terms and Conditions</button></p>
     </div>
 
@@ -1178,20 +1182,18 @@
           </div>
         </div>
       </div>
-      <p class="pe-hint">Drag the round corners in to trim the edges away, or drag the middle to move the frame. The save button glows brighter once you've changed something. When you save the edit, all the photos are read again in order — photo 1 first — and the recipe's words are updated from them.</p>
       <div class="pe-controls">
+        <p class="pe-hint">Drag the corners to trim, the middle to move. Saving re-reads all photos in order.</p>
         <div class="pe-slider-row">
           <label for="pe-bright">Brightness</label>
           <input type="range" id="pe-bright" min="-100" max="100" step="1" value="0" />
           <span class="pe-slider-val" id="pe-bright-val">0</span>
         </div>
-        <p class="pe-slider-note">Slide left to make the photo darker, right to make it brighter.</p>
         <div class="pe-slider-row">
           <label for="pe-contrast">Contrast</label>
           <input type="range" id="pe-contrast" min="-100" max="100" step="1" value="0" />
           <span class="pe-slider-val" id="pe-contrast-val">0</span>
         </div>
-        <p class="pe-slider-note">More contrast makes light parts lighter and dark parts darker.</p>
         <div class="pe-btns">
           <button type="button" class="pe-reset" id="btn-pe-reset">Start over</button>
           <button type="button" class="pe-cancel" id="btn-pe-cancel">Cancel</button>
@@ -1272,6 +1274,7 @@
       <div class="confirm-card">
         <h3 id="update-log-title">What's new</h3>
         <ul class="update-log-list">
+          <li><strong>v1.11</strong> Photo editor: the words no longer sit on the trim corners, the corners drag properly, and there's less text.</li>
           <li><strong>v1.10</strong> Fixed for real this time: the photo editor's dim trim shade was covering its own buttons and sliders, so they looked dark and unselectable. Now only the photo is shaded — the buttons and sliders show bright and ready to tap.</li>
           <li><strong>v1.9</strong> Sort the lines does it all now: Edit on any line fixes its words right there — no separate check step. Photo editor buttons and sliders glow as bright as the trim corners.</li>
           <li><strong>v1.8</strong> Photo editor buttons and sliders are now bright and clearly pressable — nothing looks dim or disabled.</li>
@@ -1313,7 +1316,7 @@
         // it on every update: minor updates step 0.1 → 0.2 → 0.3 …,
         // a major update moves to the next whole number — 1.0,
         // 2.0, and so on.
-        var APP_VERSION = "1.10";
+        var APP_VERSION = "1.11";
         var recipes = [];
         var editingId = null;
         var viewingId = null;
@@ -2010,8 +2013,15 @@
           peDrag = { mode: mode, start: pePointFrac(ev), crop0: { x: editorState.crop.x, y: editorState.crop.y, w: editorState.crop.w, h: editorState.crop.h } };
           try { pe.cropEl.setPointerCapture(ev.pointerId); } catch (e) {}
         });
-        pe.cropEl.addEventListener("pointermove", function (ev) {
+        // The move/up listeners live on the window, not on the
+        // crop frame: a drag that starts on a corner handle must
+        // keep tracking even when the finger slides off the
+        // frame or the handle, and element-level capture proved
+        // unreliable for that on touch screens — the adjuster
+        // felt stuck. The window hears every move either way.
+        window.addEventListener("pointermove", function (ev) {
           if (!peDrag || !editorState) return;
+          ev.preventDefault();
           var p = pePointFrac(ev);
           var dx = p.x - peDrag.start.x, dy = p.y - peDrag.start.y;
           var c0 = peDrag.crop0;
@@ -2029,10 +2039,10 @@
           }
           editorState.crop = c;
           layoutPeCrop();
-        });
+        }, { passive: false });
         function peEndDrag() { peDrag = null; }
-        pe.cropEl.addEventListener("pointerup", peEndDrag);
-        pe.cropEl.addEventListener("pointercancel", peEndDrag);
+        window.addEventListener("pointerup", peEndDrag);
+        window.addEventListener("pointercancel", peEndDrag);
         $("btn-pe-apply").addEventListener("click", function () {
           if (!editorState) return;
           var st = editorState;
